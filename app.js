@@ -141,22 +141,20 @@ function populateSelects() {
 }
 
 function updateStats() {
-  document.getElementById("node-count").textContent = graph.size;
-  document.getElementById("edge-count").textContent = edges.length;
-
-  let maxDegree = -1;
-  let hub = "—";
   let degreeSum = 0;
-  for (const [node, neighbors] of graph.entries()) {
+  for (const [, neighbors] of graph.entries()) {
     degreeSum += neighbors.length;
-    if (neighbors.length > maxDegree) {
-      maxDegree = neighbors.length;
-      hub = node;
-    }
   }
   const avgDegree = degreeSum / graph.size;
-  document.getElementById("hub-node").textContent = hub;
-  document.getElementById("avg-degree").textContent = avgDegree.toFixed(1);
+  const hubNode = document.getElementById("hub-node");
+  const avgEl = document.getElementById("avg-degree");
+  if (hubNode) hubNode.textContent = "—";
+  if (avgEl) avgEl.textContent = avgDegree.toFixed(1);
+}
+
+function setNearestLandmark(name) {
+  const hubNode = document.getElementById("hub-node");
+  if (hubNode) hubNode.textContent = name || "—";
 }
 
 function renderPath(path, distance) {
@@ -164,6 +162,7 @@ function renderPath(path, distance) {
   if (!path) {
     distanceBox.textContent = "No path";
     pathBox.textContent = "";
+    setNearestLandmark("—");
     return;
   }
   distanceBox.textContent = `${distance.toFixed(1)} meters`;
@@ -180,6 +179,10 @@ function renderPath(path, distance) {
       pathBox.appendChild(arrow);
     }
   });
+
+  // Nearest landmark: building just before the destination (or the destination itself if single-node)
+  const nearest = path.length > 1 ? path[path.length - 2] : path[0];
+  setNearestLandmark(nearest);
 }
 
 computeBtn.addEventListener("click", () => {
@@ -384,27 +387,27 @@ const factText = document.getElementById("fact-text");
 const factCategory = document.getElementById("fact-category");
 
 const funFacts = [
-  { category: "📜 History", text: "Founded in 1952 as the Manuel S. Enverga University Foundation (MSEUF)" },
-  { category: "📜 History", text: "Converted into Laguna State Polytechnic College (LSPC) in 2001" },
-  { category: "📜 History", text: "Achieved university status in 2009, becoming LSPU" },
-  { category: "📜 History", text: "Named after the province of Laguna, known as the 'Resort Capital of the Philippines'" },
-  { category: "📜 History", text: "The Los Baños campus is the satellite campus, with the main campus in Santa Cruz" },
-  { category: "📜 History", text: "LSPU students are affectionately called 'Ka-Piyu' (from 'Piyu' meaning chick)" },
-  { category: "📜 History", text: "The university has expanded to multiple campuses across Laguna province" },
-  { category: "📜 History", text: "Known for its affordable quality education for Lagunenses" },
-  { category: "🗺️ Geography", text: "Located in Los Baños, Laguna, at the foot of Mount Makiling" },
-  { category: "🗺️ Geography", text: "Los Baños means 'The Baths' in Spanish, named for its hot springs" },
-  { category: "🗺️ Geography", text: "The town is approximately 63 km southeast of Manila" },
-  { category: "🗺️ Geography", text: "Surrounded by agricultural land and research institutions like IRRI and UPLB" },
-  { category: "🗺️ Geography", text: "The campus enjoys a cooler climate due to its proximity to Mt. Makiling" },
-  { category: "🗺️ Geography", text: "Los Baños is part of the CALABARZON region" },
-  { category: "🗺️ Geography", text: "The area is known for its scientific and agricultural community" },
-  { category: "🗺️ Geography", text: "Near Laguna de Bay, the largest lake in the Philippines" },
-  { category: "🎉 Campus Life", text: "Home to diverse programs in business, education, engineering, and more" },
-  { category: "🎉 Campus Life", text: "Features the Lacson Gymnasium for sports and events" },
-  { category: "🎉 Campus Life", text: "Has a vibrant student council culture across different colleges" },
-  { category: "🎉 Campus Life", text: "Known for community engagement and extension programs" },
-  { category: "🎉 Campus Life", text: "Offers affordable meals at the campus cafeteria" }
+  { category: "📜 History", text: "LSPU began in 1952 as the Manuel S. Enverga University Foundation." },
+  { category: "📜 History", text: "It became Laguna State Polytechnic College (LSPC) in 2001." },
+  { category: "📜 History", text: "It earned university status in 2009 and became LSPU." },
+  { category: "📜 History", text: "LSPU is named after Laguna, the 'Resort Capital of the Philippines.'" },
+  { category: "📜 History", text: "The Los Banos campus serves as a satellite; the main campus is in Santa Cruz." },
+  { category: "📜 History", text: "Students often call each other 'Ka-Piyu' (from 'Piyu' meaning chick)." },
+  { category: "📜 History", text: "LSPU now spans multiple campuses across Laguna province." },
+  { category: "📜 History", text: "It is known for providing affordable, quality education to Lagunenses." },
+  { category: "🗺️ Geography", text: "The Los Banos campus sits at the foot of Mount Makiling." },
+  { category: "🗺️ Geography", text: "Los Banos means 'The Baths' in Spanish, named for its hot springs." },
+  { category: "🗺️ Geography", text: "The town lies about 63 km southeast of Manila." },
+  { category: "🗺️ Geography", text: "The campus neighbors research hubs like IRRI and UPLB." },
+  { category: "🗺️ Geography", text: "Cool breezes from Mt. Makiling keep the campus milder than Manila." },
+  { category: "🗺️ Geography", text: "Los Banos belongs to the CALABARZON region." },
+  { category: "🗺️ Geography", text: "The area thrives as a scientific and agricultural community." },
+  { category: "🗺️ Geography", text: "Laguna de Bay, the country's largest lake, is close by." },
+  { category: "🎉 Campus Life", text: "LSPU offers programs in business, education, engineering, and more." },
+  { category: "🎉 Campus Life", text: "The Lacson Gymnasium hosts major sports and campus events." },
+  { category: "🎉 Campus Life", text: "Student councils are active across colleges." },
+  { category: "🎉 Campus Life", text: "Community engagement and extension programs are a core tradition." },
+  { category: "🎉 Campus Life", text: "The campus cafeteria is known for affordable meals." }
 ];
 
 let currentFactIndex = -1;
