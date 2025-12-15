@@ -112,6 +112,11 @@ const distanceBox = document.getElementById("distance");
 const landing = document.getElementById("landing");
 const getStarted = document.getElementById("get-started");
 const appContainer = document.querySelector(".app");
+const openInfo = document.getElementById("open-info");
+const closeInfo = document.getElementById("close-info");
+const infoOverlay = document.getElementById("info-overlay");
+const themeToggleBtn = document.getElementById("theme-toggle-btn");
+const exitToLanding = document.getElementById("exit-to-landing");
 let mapInstance = null;
 let mapBounds = null;
 
@@ -207,6 +212,58 @@ getStarted.addEventListener("click", () => {
   }
 });
 
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.body.classList.add("theme-dark");
+  } else {
+    document.body.classList.remove("theme-dark");
+  }
+  localStorage.setItem("theme", theme);
+  if (themeToggleBtn) {
+    const isDark = theme === "dark";
+    themeToggleBtn.textContent = isDark ? "🌙" : "🌞";
+  }
+}
+
+function initTheme() {
+  const saved = localStorage.getItem("theme");
+  applyTheme(saved === "dark" ? "dark" : "light");
+}
+
+function toggleInfo(open) {
+  if (open) {
+    infoOverlay.classList.remove("hidden");
+  } else {
+    infoOverlay.classList.add("hidden");
+  }
+}
+
+if (openInfo) {
+  openInfo.addEventListener("click", () => toggleInfo(true));
+}
+if (closeInfo) {
+  closeInfo.addEventListener("click", () => toggleInfo(false));
+}
+if (infoOverlay) {
+  infoOverlay.addEventListener("click", (e) => {
+    if (e.target === infoOverlay) toggleInfo(false);
+  });
+}
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", () => {
+    const isDark = document.body.classList.contains("theme-dark");
+    applyTheme(isDark ? "light" : "dark");
+  });
+}
+if (exitToLanding) {
+  exitToLanding.addEventListener("click", () => {
+    landing.classList.remove("fade-out");
+    appContainer.classList.add("inactive");
+    const saved = localStorage.getItem("theme");
+    applyTheme(saved === "dark" ? "dark" : "light");
+  });
+}
+
 function initMap() {
   const mapEl = document.getElementById("map");
   if (!mapEl) return;
@@ -275,4 +332,5 @@ populateSelects();
 updateStats();
 renderPath(null, null);
 initMap();
+initTheme();
 

@@ -40,6 +40,11 @@
     <header>
       <div class="dot"></div>
       <h1>Campus Navigation Tool</h1>
+      <div class="header-actions">
+        <button id="theme-toggle-btn" class="icon-btn square" aria-label="Toggle theme">🌞</button>
+        <button id="open-info" class="icon-btn square" aria-label="Open information">ℹ️</button>
+        <button id="exit-to-landing" class="icon-btn square" aria-label="Back to get started">❌</button>
+      </div>
     </header>
     <div class="content">
       <section class="panel">
@@ -90,6 +95,32 @@
           <p class="map-note">Use the scroll wheel to pan/zoom the map.</p>
         </div>
       </section>
+    </div>
+  </div>
+
+  <div id="info-overlay" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="info-title">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h3 id="info-title">Information</h3>
+        <button id="close-info" class="icon-btn square" aria-label="Close information">✕</button>
+      </div>
+      <div class="info-columns">
+        <div class="info-col">
+          <p class="settings-label">How to use</p>
+          <p class="settings-help">
+            1) Pick your start and destination.<br>
+            2) Click “Compute optimal path”.<br>
+            3) Review distance and path chips.<br>
+            4) Pan/zoom the campus map for context.
+          </p>
+        </div>
+        <div class="info-col">
+          <p class="settings-label">About</p>
+          <p class="settings-help">
+            LSPU Campus Navigator computes weighted shortest paths across mapped campus locations and presents them on a zoomable SVG map for clear orientation.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 
