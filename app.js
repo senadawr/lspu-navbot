@@ -813,6 +813,31 @@ if (shuffleBtn) {
   shuffleBtn.addEventListener("click", showRandomFact);
 }
 
+// Mobile facts toggle
+const factsMobileBtn = document.getElementById("facts-toggle-mobile");
+if (factsMobileBtn && funFactsTab) {
+  factsMobileBtn.addEventListener("click", () => {
+    const isHidden = funFactsTab.style.display === "none";
+    if (isHidden) {
+      funFactsTab.style.display = "block";
+      factsMobileBtn.classList.add("active");
+    } else {
+      funFactsTab.style.display = "none";
+      factsMobileBtn.classList.remove("active");
+    }
+  });
+  
+  // Close facts when clicking outside
+  document.addEventListener("click", (e) => {
+    const isClickInsideFacts = funFactsTab.contains(e.target);
+    const isClickOnBtn = factsMobileBtn.contains(e.target);
+    if (!isClickInsideFacts && !isClickOnBtn && funFactsTab.style.display === "block") {
+      funFactsTab.style.display = "none";
+      factsMobileBtn.classList.remove("active");
+    }
+  });
+}
+
 // Show initial random fact
 showRandomFact();
 
