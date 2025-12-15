@@ -121,8 +121,26 @@ const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const exitToLanding = document.getElementById("exit-to-landing");
 let mapInstance = null;
 let mapBounds = null;
+let nodePositions = new Map();
+let nodeMarkers = new Map();
+let nodeLayer = null;
+let startMarker = null;
+let endMarker = null;
+let pathLine = null;
+let selectedStart = null;
+let selectedEnd = null;
 
 function populateSelects() {
+  const placeholderStart = document.createElement("option");
+  placeholderStart.value = "";
+  placeholderStart.textContent = "Click map to set start";
+  startSelect.appendChild(placeholderStart);
+
+  const placeholderEnd = document.createElement("option");
+  placeholderEnd.value = "";
+  placeholderEnd.textContent = "Click map to set destination";
+  endSelect.appendChild(placeholderEnd);
+
   const fragStart = document.createDocumentFragment();
   const fragEnd = document.createDocumentFragment();
   for (const loc of locations) {
@@ -136,8 +154,8 @@ function populateSelects() {
   }
   startSelect.appendChild(fragStart);
   endSelect.appendChild(fragEnd);
-  startSelect.value = "Hall";
-  endSelect.value = "CBAA Student Council";
+  startSelect.value = "";
+  endSelect.value = "";
 }
 
 function updateStats() {
@@ -157,12 +175,169 @@ function setNearestLandmark(name) {
   if (hubNode) hubNode.textContent = name || "—";
 }
 
+function clearResultCard(message = "—") {
+  distanceBox.textContent = message;
+  pathBox.innerHTML = "";
+  setNearestLandmark("—");
+  clearPathVisualization();
+}
+
+function clearPathVisualization() {
+  if (pathLine && mapInstance) {
+    mapInstance.removeLayer(pathLine);
+    pathLine = null;
+  }
+}
+
+function updateSelectionMarkers() {
+  if (!mapInstance || !nodePositions.size) return;
+
+  if (startMarker) {
+    mapInstance.removeLayer(startMarker);
+    startMarker = null;
+  }
+  if (endMarker) {
+    mapInstance.removeLayer(endMarker);
+    endMarker = null;
+  }
+
+  if (selectedStart && nodePositions.has(selectedStart)) {
+    startMarker = L.circleMarker(nodePositions.get(selectedStart), {
+      radius: 10,
+      color: "#2563eb",
+      weight: 3,
+      fillColor: "#93c5fd",
+      fillOpacity: 0.7,
+    }).addTo(mapInstance);
+  }
+
+  if (selectedEnd && nodePositions.has(selectedEnd)) {
+    endMarker = L.circleMarker(nodePositions.get(selectedEnd), {
+      radius: 10,
+      color: "#f97316",
+      weight: 3,
+      fillColor: "#fdba74",
+      fillOpacity: 0.7,
+    }).addTo(mapInstance);
+  }
+}
+
+function drawPathOnMap(path) {
+  clearPathVisualization();
+  if (!mapInstance || !nodePositions.size || !path || path.length < 2) return;
+
+  const coords = path
+    .map((name) => nodePositions.get(name))
+    .filter(Boolean);
+
+  if (coords.length < 2) return;
+
+  pathLine = L.polyline(coords, {
+    color: "#10b981",
+    weight: 6,
+    opacity: 0.85,
+    lineJoin: "round",
+  }).addTo(mapInstance);
+
+  mapInstance.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
+}
+
+function generateNodePositions(nodes, width, height) {
+  const positions = new Map();
+  const cols = Math.ceil(Math.sqrt(nodes.length));
+  const rows = Math.ceil(nodes.length / cols);
+  const padding = 60;
+  const cellW = (width - padding * 2) / cols;
+  const cellH = (height - padding * 2) / rows;
+
+  nodes.forEach((node, idx) => {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const x = padding + col * cellW + cellW / 2;
+    const y = padding + row * cellH + cellH / 2;
+    positions.set(node, [y, x]);
+  });
+
+  return positions;
+}
+
+function nearestNode(latlng) {
+  let best = null;
+  let minDist = Infinity;
+  nodePositions.forEach((pos, name) => {
+    const dx = pos[1] - latlng.lng;
+    const dy = pos[0] - latlng.lat;
+    const dist = dx * dx + dy * dy;
+    if (dist < minDist) {
+      minDist = dist;
+      best = name;
+    }
+  });
+  return best;
+}
+
+function resetPathAndCards() {
+  clearResultCard();
+  errorBox.textContent = "";
+}
+
+function handleMapPick(name) {
+  if (!name) return;
+  errorBox.textContent = "";
+
+  if (!selectedStart || (selectedStart && selectedEnd)) {
+    selectedStart = name;
+    startSelect.value = name;
+    selectedEnd = null;
+    endSelect.value = "";
+  } else if (name !== selectedStart) {
+    selectedEnd = name;
+    endSelect.value = name;
+  } else {
+    return;
+  }
+
+  clearResultCard();
+  updateSelectionMarkers();
+}
+
+function setupInteractiveNodes(width, height) {
+  nodePositions = generateNodePositions(locations, width, height);
+  nodeLayer = L.layerGroup().addTo(mapInstance);
+  nodeMarkers = new Map();
+
+  nodePositions.forEach((pos, name) => {
+    const marker = L.circleMarker(pos, {
+      radius: 6,
+      color: "#1f2937",
+      weight: 1.5,
+      fillColor: "#e5e7eb",
+      fillOpacity: 0.9,
+    })
+      .on("click", (evt) => {
+        L.DomEvent.stopPropagation(evt);
+        handleMapPick(name);
+      })
+      .bindTooltip(name, { direction: "top", offset: [0, -4], opacity: 0.9 });
+
+    marker.addTo(nodeLayer);
+    nodeMarkers.set(name, marker);
+  });
+
+  mapInstance.on("click", (evt) => {
+    const snapped = nearestNode(evt.latlng);
+    handleMapPick(snapped);
+  });
+
+  updateSelectionMarkers();
+}
+
 function renderPath(path, distance) {
   pathBox.innerHTML = "";
   if (!path) {
-    distanceBox.textContent = "No path";
-    pathBox.textContent = "";
+    distanceBox.textContent = "—";
     setNearestLandmark("—");
+    clearPathVisualization();
     return;
   }
   distanceBox.textContent = `${distance.toFixed(1)} meters`;
@@ -183,26 +358,56 @@ function renderPath(path, distance) {
   // Nearest landmark: building just before the destination (or the destination itself if single-node)
   const nearest = path.length > 1 ? path[path.length - 2] : path[0];
   setNearestLandmark(nearest);
+  drawPathOnMap(path);
 }
 
 computeBtn.addEventListener("click", () => {
-  const start = startSelect.value;
-  const end = endSelect.value;
+  selectedStart = startSelect.value || null;
+  selectedEnd = endSelect.value || null;
+  const start = selectedStart;
+  const end = selectedEnd;
   errorBox.textContent = "";
+
+  if (!start || !end) {
+    errorBox.textContent = "Click the map to set both start and destination.";
+    clearResultCard();
+    return;
+  }
 
   if (start === end) {
     errorBox.textContent = "Start and destination must differ.";
-    renderPath(null, null);
+    clearResultCard();
     return;
   }
 
   const { path, distance } = shortestPath(start, end);
   if (!path) {
     errorBox.textContent = "No path found between those points.";
-    renderPath(null, null);
+    clearResultCard("No path");
     return;
   }
   renderPath(path, distance);
+  updateSelectionMarkers();
+});
+
+startSelect.addEventListener("change", () => {
+  selectedStart = startSelect.value || null;
+  if (selectedStart === selectedEnd) {
+    selectedEnd = null;
+    endSelect.value = "";
+  }
+  resetPathAndCards();
+  updateSelectionMarkers();
+});
+
+endSelect.addEventListener("change", () => {
+  selectedEnd = endSelect.value || null;
+  if (selectedEnd === selectedStart) {
+    selectedEnd = null;
+    endSelect.value = "";
+  }
+  resetPathAndCards();
+  updateSelectionMarkers();
 });
 
 getStarted.addEventListener("click", () => {
@@ -340,6 +545,7 @@ function initMap() {
       L.svgOverlay(svgElement, mapBounds).addTo(mapInstance);
       mapInstance.fitBounds(mapBounds);
       mapInstance.setMaxBounds(mapBounds);
+      setupInteractiveNodes(width, height);
     })
     .catch((err) => {
       console.error("SVG load failed, trying PNG fallback:", err);
@@ -361,6 +567,7 @@ function initMap() {
         L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
         mapInstance.fitBounds(mapBounds);
         mapInstance.setMaxBounds(mapBounds);
+        setupInteractiveNodes(imgWidth, imgHeight);
       } catch (pngErr) {
         console.error("PNG fallback also failed:", pngErr);
         const msg = document.createElement("div");
@@ -375,7 +582,7 @@ function initMap() {
 
 populateSelects();
 updateStats();
-renderPath(null, null);
+clearResultCard();
 initMap();
 initTheme();
 
