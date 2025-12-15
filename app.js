@@ -461,81 +461,78 @@ function initMap() {
     return;
   }
 
-  // Try to load SVG first, fallback to PNG if it fails
-  fetch("sprites/map.svg")
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.text();
-    })
-    .then((text) => {
-      const doc = new DOMParser().parseFromString(text, "image/svg+xml");
-      const svg = doc.querySelector("svg");
-      if (!svg) throw new Error("SVG root not found");
+  // Prefer svgOverlay via fetch; fallback to imageOverlay with SVG URL for file:// usage
+  const trySvgOverlay = () => {
+    return fetch("sprites/map.svg")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.text();
+      })
+      .then((text) => {
+        const doc = new DOMParser().parseFromString(text, "image/svg+xml");
+        const svg = doc.querySelector("svg");
+        if (!svg) throw new Error("SVG root not found");
 
-      const viewBox = (svg.getAttribute("viewBox") || "0 0 1440 810")
-        .split(" ")
-        .map(Number);
-      const widthAttr = parseFloat(svg.getAttribute("width"));
-      const heightAttr = parseFloat(svg.getAttribute("height"));
-      const width = viewBox[2] || widthAttr || 1440;
-      const height = viewBox[3] || heightAttr || 810;
+        const viewBox = (svg.getAttribute("viewBox") || "0 0 1440 810")
+          .split(" ")
+          .map(Number);
+        const widthAttr = parseFloat(svg.getAttribute("width"));
+        const heightAttr = parseFloat(svg.getAttribute("height"));
+        const width = viewBox[2] || widthAttr || 1440;
+        const height = viewBox[3] || heightAttr || 810;
 
-      svg.removeAttribute("width");
-      svg.removeAttribute("height");
-      svg.setAttribute("width", "100%");
-      svg.setAttribute("height", "100%");
-      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-      const southWest = [height, 0];
-      const northEast = [0, width];
-      mapBounds = [southWest, northEast];
-
-      mapInstance = L.map("map", {
-        crs: L.CRS.Simple,
-        minZoom: 1,
-        maxZoom: 8,
-        maxBoundsViscosity: 1.0,
-      });
-
-      const svgElement = svg.cloneNode(true);
-      L.svgOverlay(svgElement, mapBounds).addTo(mapInstance);
-      mapInstance.fitBounds(mapBounds);
-      mapInstance.setMaxBounds(mapBounds);
-      loadStoredPositions();
-      renderMarkers();
-    })
-    .catch((err) => {
-      console.error("SVG load failed, trying PNG fallback:", err);
-      // Fallback to PNG image
-      try {
-        const imgWidth = 1440;
-        const imgHeight = 810;
-        const southWest = [0, 0];
-        const northEast = [imgHeight, imgWidth];
+        const southWest = [height, 0];
+        const northEast = [0, width];
         mapBounds = [southWest, northEast];
 
         mapInstance = L.map("map", {
           crs: L.CRS.Simple,
-          minZoom: -1,
-          maxZoom: 3,
+          minZoom: -4,
+          maxZoom: 8,
           maxBoundsViscosity: 1.0,
         });
 
-        L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
+        const svgElement = svg.cloneNode(true);
+        L.svgOverlay(svgElement, mapBounds).addTo(mapInstance);
         mapInstance.fitBounds(mapBounds);
         mapInstance.setMaxBounds(mapBounds);
         loadStoredPositions();
         renderMarkers();
-      } catch (pngErr) {
-        console.error("PNG fallback also failed:", pngErr);
-        const msg = document.createElement("div");
-        msg.style.padding = "12px";
-        msg.style.color = "var(--danger)";
-        msg.textContent = "Failed to load campus map. Please serve the page through a local web server.";
-        mapEl.innerHTML = "";
-        mapEl.appendChild(msg);
-      }
+      });
+  };
+
+  const fallbackImageOverlaySvg = () => {
+    const width = 809.33;
+    const height = 1078.67;
+    const southWest = [height, 0];
+    const northEast = [0, width];
+    mapBounds = [southWest, northEast];
+
+    mapInstance = L.map("map", {
+      crs: L.CRS.Simple,
+      minZoom: -0.1,
+      maxZoom: 8,
+      maxBoundsViscosity: 1.0,
     });
+
+    // Render the SVG as an image source; works under file://
+    L.imageOverlay("sprites/map.svg", mapBounds).addTo(mapInstance);
+    mapInstance.fitBounds(mapBounds);
+    mapInstance.setMaxBounds(mapBounds);
+    loadStoredPositions();
+    renderMarkers();
+  };
+
+  trySvgOverlay().catch((err) => {
+    console.warn("svgOverlay fetch failed; using imageOverlay with SVG URL", err);
+    fallbackImageOverlaySvg();
+  });
 }
 
 populateSelects();
