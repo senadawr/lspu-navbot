@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Navigator</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="dot"></div>
+      <h1>Campus Navigation Tool</h1>
+    </header>
+    <div class="content">
+      <section class="panel">
+        <label for="start">Starting location</label>
+        <select id="start"></select>
+
+        <label for="end">Destination</label>
+        <select id="end"></select>
+
+        <button id="compute">Compute optimal path</button>
+        <div id="error" class="error" aria-live="polite"></div>
+
+        <div class="result-card">
+          <p class="result-title">Shortest distance</p>
+          <p id="distance" class="distance">—</p>
+          <div class="path" id="path"></div>
+        </div>
+
+        <div class="legend">
+          Uses weighted graph search (Dijkstra) on building distances.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin:0 0 12px;font-size:16px;">Graph overview</h3>
+        <div class="graph-info">
+          <div class="stat">
+            <strong>Total locations</strong>
+            <span id="node-count">0</span>
+          </div>
+          <div class="stat">
+            <strong>Total connections</strong>
+            <span id="edge-count">0</span>
+          </div>
+          <div class="stat">
+            <strong>Most connected</strong>
+            <span id="hub-node">—</span>
+          </div>
+          <div class="stat">
+            <strong>Avg degree</strong>
+            <span id="avg-degree">—</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
