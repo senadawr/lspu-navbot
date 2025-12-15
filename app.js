@@ -396,18 +396,33 @@ const funFacts = [
 let currentFactIndex = -1;
 
 function showRandomFact() {
-  let newIndex;
-  do {
-    newIndex = Math.floor(Math.random() * funFacts.length);
-  } while (newIndex === currentFactIndex && funFacts.length > 1);
+  const factDisplay = document.querySelector(".fact-display");
   
-  currentFactIndex = newIndex;
-  const fact = funFacts[currentFactIndex];
-  
-  if (factText && factCategory) {
-    factText.textContent = fact.text;
-    factCategory.textContent = fact.category;
+  // Fade out
+  if (factDisplay) {
+    factDisplay.classList.add("fade-out");
   }
+  
+  // Wait for fade out, then change content and fade in
+  setTimeout(() => {
+    let newIndex;
+    do {
+      newIndex = Math.floor(Math.random() * funFacts.length);
+    } while (newIndex === currentFactIndex && funFacts.length > 1);
+    
+    currentFactIndex = newIndex;
+    const fact = funFacts[currentFactIndex];
+    
+    if (factText && factCategory) {
+      factText.textContent = fact.text;
+      factCategory.textContent = fact.category;
+    }
+    
+    // Fade back in
+    if (factDisplay) {
+      factDisplay.classList.remove("fade-out");
+    }
+  }, 300);
 }
 
 if (shuffleBtn) {
