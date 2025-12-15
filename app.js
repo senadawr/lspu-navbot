@@ -109,6 +109,9 @@ const computeBtn = document.getElementById("compute");
 const errorBox = document.getElementById("error");
 const pathBox = document.getElementById("path");
 const distanceBox = document.getElementById("distance");
+const landing = document.getElementById("landing");
+const getStarted = document.getElementById("get-started");
+const appContainer = document.querySelector(".app");
 
 function populateSelects() {
   const fragStart = document.createDocumentFragment();
@@ -188,6 +191,11 @@ computeBtn.addEventListener("click", () => {
     return;
   }
   renderPath(path, distance);
+});
+
+getStarted.addEventListener("click", () => {
+  landing.classList.add("fade-out");
+  appContainer.classList.remove("inactive");
 });
 
 populateSelects();
