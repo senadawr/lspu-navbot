@@ -42,6 +42,15 @@ header {
   align-items: center;
   gap: 12px;
 }
+.logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px;
+}
 header .dot {
   width: 12px;
   height: 12px;
@@ -162,6 +171,33 @@ button:disabled {
 }
 
 /* Landing */
+.page-brand {
+  position: fixed;
+  top: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+}
+.page-brand__inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(17, 24, 39, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+}
+.brand-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e5e7eb;
+  letter-spacing: 0.2px;
+}
 .landing {
   position: fixed;
   inset: 0;
