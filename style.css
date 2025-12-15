@@ -168,6 +168,25 @@ button:disabled {
   gap: 12px;
   margin-top: 16px;
 }
+.map-card {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: #f9fbff;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+#map {
+  height: 360px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.map-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
 .stat {
   padding: 14px;
   border-radius: var(--radius);

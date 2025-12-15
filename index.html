@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LSPU Campus Navigator</title>
   <link rel="icon" type="image/png" href="sprites/lspu_logo.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -82,10 +83,17 @@
             <span id="avg-degree">—</span>
           </div>
         </div>
+
+        <div class="map-card">
+          <h3 style="margin:0 0 10px;font-size:15px;">Campus map (Leaflet overlay)</h3>
+          <div id="map"></div>
+          <p class="map-note">Use the scroll wheel to pan/zoom the map.</p>
+        </div>
       </section>
     </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

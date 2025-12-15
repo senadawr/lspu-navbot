@@ -112,6 +112,8 @@ const distanceBox = document.getElementById("distance");
 const landing = document.getElementById("landing");
 const getStarted = document.getElementById("get-started");
 const appContainer = document.querySelector(".app");
+let mapInstance = null;
+let mapBounds = null;
 
 function populateSelects() {
   const fragStart = document.createDocumentFragment();
@@ -196,9 +198,81 @@ computeBtn.addEventListener("click", () => {
 getStarted.addEventListener("click", () => {
   landing.classList.add("fade-out");
   appContainer.classList.remove("inactive");
+  // Ensure Leaflet map sizes correctly after becoming visible
+  if (mapInstance && mapBounds) {
+    setTimeout(() => {
+      mapInstance.invalidateSize();
+      mapInstance.fitBounds(mapBounds);
+    }, 60);
+  }
 });
+
+function initMap() {
+  const mapEl = document.getElementById("map");
+  if (!mapEl) return;
+  if (!window.L) {
+    mapEl.innerHTML = "";
+    const msg = document.createElement("div");
+    msg.style.padding = "12px";
+    msg.style.color = "var(--danger)";
+    msg.textContent = "Leaflet failed to load.";
+    mapEl.appendChild(msg);
+    return;
+  }
+
+  fetch("sprites/map.svg")
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    })
+    .then((text) => {
+      const doc = new DOMParser().parseFromString(text, "image/svg+xml");
+      const svg = doc.querySelector("svg");
+      if (!svg) throw new Error("SVG root not found");
+
+      const viewBox = (svg.getAttribute("viewBox") || "0 0 1440 810")
+        .split(" ")
+        .map(Number);
+      const widthAttr = parseFloat(svg.getAttribute("width"));
+      const heightAttr = parseFloat(svg.getAttribute("height"));
+      const width = viewBox[2] || widthAttr || 1440;
+      const height = viewBox[3] || heightAttr || 810;
+
+      svg.removeAttribute("width");
+      svg.removeAttribute("height");
+      svg.setAttribute("width", "100%");
+      svg.setAttribute("height", "100%");
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+      const southWest = [height, 0];
+      const northEast = [0, width];
+      mapBounds = [southWest, northEast];
+
+      mapInstance = L.map("map", {
+        crs: L.CRS.Simple,
+        minZoom: 1,
+        maxZoom: 8,
+        maxBoundsViscosity: 1.0,
+      });
+
+      const svgElement = svg.cloneNode(true);
+      L.svgOverlay(svgElement, mapBounds).addTo(mapInstance);
+      mapInstance.fitBounds(mapBounds);
+      mapInstance.setMaxBounds(mapBounds);
+    })
+    .catch((err) => {
+      const msg = document.createElement("div");
+      msg.style.padding = "12px";
+      msg.style.color = "var(--danger)";
+      msg.textContent = "Failed to load campus map.";
+      mapEl.innerHTML = "";
+      mapEl.appendChild(msg);
+      console.error(err);
+    });
+}
 
 populateSelects();
 updateStats();
 renderPath(null, null);
+initMap();
 
