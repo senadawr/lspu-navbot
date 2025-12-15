@@ -283,6 +283,7 @@ function initMap() {
     return;
   }
 
+  // Try to load SVG first, fallback to PNG if it fails
   fetch("sprites/map.svg")
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -324,13 +325,34 @@ function initMap() {
       mapInstance.setMaxBounds(mapBounds);
     })
     .catch((err) => {
-      const msg = document.createElement("div");
-      msg.style.padding = "12px";
-      msg.style.color = "var(--danger)";
-      msg.textContent = "Failed to load campus map.";
-      mapEl.innerHTML = "";
-      mapEl.appendChild(msg);
-      console.error(err);
+      console.error("SVG load failed, trying PNG fallback:", err);
+      // Fallback to PNG image
+      try {
+        const imgWidth = 1440;
+        const imgHeight = 810;
+        const southWest = [0, 0];
+        const northEast = [imgHeight, imgWidth];
+        mapBounds = [southWest, northEast];
+
+        mapInstance = L.map("map", {
+          crs: L.CRS.Simple,
+          minZoom: -1,
+          maxZoom: 3,
+          maxBoundsViscosity: 1.0,
+        });
+
+        L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
+        mapInstance.fitBounds(mapBounds);
+        mapInstance.setMaxBounds(mapBounds);
+      } catch (pngErr) {
+        console.error("PNG fallback also failed:", pngErr);
+        const msg = document.createElement("div");
+        msg.style.padding = "12px";
+        msg.style.color = "var(--danger)";
+        msg.textContent = "Failed to load campus map. Please serve the page through a local web server.";
+        mapEl.innerHTML = "";
+        mapEl.appendChild(msg);
+      }
     });
 }
 
@@ -339,4 +361,59 @@ updateStats();
 renderPath(null, null);
 initMap();
 initTheme();
+
+// Fun Facts Tab Toggle and Random Facts
+const factsToggle = document.getElementById("facts-toggle");
+const funFactsTab = document.getElementById("fun-facts-tab");
+const shuffleBtn = document.getElementById("shuffle-fact");
+const factText = document.getElementById("fact-text");
+const factCategory = document.getElementById("fact-category");
+
+const funFacts = [
+  { category: "📜 History", text: "Founded in 1952 as the Manuel S. Enverga University Foundation (MSEUF)" },
+  { category: "📜 History", text: "Converted into Laguna State Polytechnic College (LSPC) in 2001" },
+  { category: "📜 History", text: "Achieved university status in 2009, becoming LSPU" },
+  { category: "📜 History", text: "Named after the province of Laguna, known as the 'Resort Capital of the Philippines'" },
+  { category: "📜 History", text: "The Los Baños campus is the satellite campus, with the main campus in Santa Cruz" },
+  { category: "📜 History", text: "LSPU students are affectionately called 'Ka-Piyu' (from 'Piyu' meaning chick)" },
+  { category: "📜 History", text: "The university has expanded to multiple campuses across Laguna province" },
+  { category: "📜 History", text: "Known for its affordable quality education for Lagunenses" },
+  { category: "🗺️ Geography", text: "Located in Los Baños, Laguna, at the foot of Mount Makiling" },
+  { category: "🗺️ Geography", text: "Los Baños means 'The Baths' in Spanish, named for its hot springs" },
+  { category: "🗺️ Geography", text: "The town is approximately 63 km southeast of Manila" },
+  { category: "🗺️ Geography", text: "Surrounded by agricultural land and research institutions like IRRI and UPLB" },
+  { category: "🗺️ Geography", text: "The campus enjoys a cooler climate due to its proximity to Mt. Makiling" },
+  { category: "🗺️ Geography", text: "Los Baños is part of the CALABARZON region" },
+  { category: "🗺️ Geography", text: "The area is known for its scientific and agricultural community" },
+  { category: "🗺️ Geography", text: "Near Laguna de Bay, the largest lake in the Philippines" },
+  { category: "🎉 Campus Life", text: "Home to diverse programs in business, education, engineering, and more" },
+  { category: "🎉 Campus Life", text: "Features the Lacson Gymnasium for sports and events" },
+  { category: "🎉 Campus Life", text: "Has a vibrant student council culture across different colleges" },
+  { category: "🎉 Campus Life", text: "Known for community engagement and extension programs" },
+  { category: "🎉 Campus Life", text: "Offers affordable meals at the campus cafeteria" }
+];
+
+let currentFactIndex = -1;
+
+function showRandomFact() {
+  let newIndex;
+  do {
+    newIndex = Math.floor(Math.random() * funFacts.length);
+  } while (newIndex === currentFactIndex && funFacts.length > 1);
+  
+  currentFactIndex = newIndex;
+  const fact = funFacts[currentFactIndex];
+  
+  if (factText && factCategory) {
+    factText.textContent = fact.text;
+    factCategory.textContent = fact.category;
+  }
+}
+
+if (shuffleBtn) {
+  shuffleBtn.addEventListener("click", showRandomFact);
+}
+
+// Show initial random fact
+showRandomFact();
 
