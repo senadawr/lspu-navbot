@@ -119,28 +119,22 @@ const openInfoLanding = document.getElementById("open-info-landing");
 const themeToggleLanding = document.getElementById("theme-toggle-landing");
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const exitToLanding = document.getElementById("exit-to-landing");
+const placeNodesBtn = document.getElementById("place-nodes");
+const undoPlacementBtn = document.getElementById("undo-placement");
 let mapInstance = null;
 let mapBounds = null;
 let nodePositions = new Map();
 let nodeMarkers = new Map();
 let nodeLayer = null;
-let startMarker = null;
-let endMarker = null;
 let pathLine = null;
 let selectedStart = null;
 let selectedEnd = null;
+let placementActive = false;
+let placementQueue = [];
+let placementIndex = 0;
+let placementHistory = [];
 
 function populateSelects() {
-  const placeholderStart = document.createElement("option");
-  placeholderStart.value = "";
-  placeholderStart.textContent = "Click map to set start";
-  startSelect.appendChild(placeholderStart);
-
-  const placeholderEnd = document.createElement("option");
-  placeholderEnd.value = "";
-  placeholderEnd.textContent = "Click map to set destination";
-  endSelect.appendChild(placeholderEnd);
-
   const fragStart = document.createDocumentFragment();
   const fragEnd = document.createDocumentFragment();
   for (const loc of locations) {
@@ -154,8 +148,8 @@ function populateSelects() {
   }
   startSelect.appendChild(fragStart);
   endSelect.appendChild(fragEnd);
-  startSelect.value = "";
-  endSelect.value = "";
+  startSelect.value = "Hall";
+  endSelect.value = "CBAA Student Council";
 }
 
 function updateStats() {
@@ -175,134 +169,19 @@ function setNearestLandmark(name) {
   if (hubNode) hubNode.textContent = name || "—";
 }
 
-function clearResultCard(message = "—") {
-  distanceBox.textContent = message;
-  pathBox.innerHTML = "";
-  setNearestLandmark("—");
-  clearPathVisualization();
-}
-
-function clearPathVisualization() {
-  if (pathLine && mapInstance) {
+function clearPathOverlay() {
+  if (mapInstance && pathLine) {
     mapInstance.removeLayer(pathLine);
     pathLine = null;
   }
 }
 
-function updateSelectionMarkers() {
-  if (!mapInstance || !nodePositions.size) return;
-
-  if (startMarker) {
-    mapInstance.removeLayer(startMarker);
-    startMarker = null;
+function renderMarkers() {
+  if (!mapInstance) return;
+  if (nodeLayer) {
+    mapInstance.removeLayer(nodeLayer);
+    nodeLayer = null;
   }
-  if (endMarker) {
-    mapInstance.removeLayer(endMarker);
-    endMarker = null;
-  }
-
-  if (selectedStart && nodePositions.has(selectedStart)) {
-    startMarker = L.circleMarker(nodePositions.get(selectedStart), {
-      radius: 10,
-      color: "#2563eb",
-      weight: 3,
-      fillColor: "#93c5fd",
-      fillOpacity: 0.7,
-    }).addTo(mapInstance);
-  }
-
-  if (selectedEnd && nodePositions.has(selectedEnd)) {
-    endMarker = L.circleMarker(nodePositions.get(selectedEnd), {
-      radius: 10,
-      color: "#f97316",
-      weight: 3,
-      fillColor: "#fdba74",
-      fillOpacity: 0.7,
-    }).addTo(mapInstance);
-  }
-}
-
-function drawPathOnMap(path) {
-  clearPathVisualization();
-  if (!mapInstance || !nodePositions.size || !path || path.length < 2) return;
-
-  const coords = path
-    .map((name) => nodePositions.get(name))
-    .filter(Boolean);
-
-  if (coords.length < 2) return;
-
-  pathLine = L.polyline(coords, {
-    color: "#10b981",
-    weight: 6,
-    opacity: 0.85,
-    lineJoin: "round",
-  }).addTo(mapInstance);
-
-  mapInstance.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
-}
-
-function generateNodePositions(nodes, width, height) {
-  const positions = new Map();
-  const cols = Math.ceil(Math.sqrt(nodes.length));
-  const rows = Math.ceil(nodes.length / cols);
-  const padding = 60;
-  const cellW = (width - padding * 2) / cols;
-  const cellH = (height - padding * 2) / rows;
-
-  nodes.forEach((node, idx) => {
-    const col = idx % cols;
-    const row = Math.floor(idx / cols);
-    const x = padding + col * cellW + cellW / 2;
-    const y = padding + row * cellH + cellH / 2;
-    positions.set(node, [y, x]);
-  });
-
-  return positions;
-}
-
-function nearestNode(latlng) {
-  let best = null;
-  let minDist = Infinity;
-  nodePositions.forEach((pos, name) => {
-    const dx = pos[1] - latlng.lng;
-    const dy = pos[0] - latlng.lat;
-    const dist = dx * dx + dy * dy;
-    if (dist < minDist) {
-      minDist = dist;
-      best = name;
-    }
-  });
-  return best;
-}
-
-function resetPathAndCards() {
-  clearResultCard();
-  errorBox.textContent = "";
-}
-
-function handleMapPick(name) {
-  if (!name) return;
-  errorBox.textContent = "";
-
-  if (!selectedStart || (selectedStart && selectedEnd)) {
-    selectedStart = name;
-    startSelect.value = name;
-    selectedEnd = null;
-    endSelect.value = "";
-  } else if (name !== selectedStart) {
-    selectedEnd = name;
-    endSelect.value = name;
-  } else {
-    return;
-  }
-
-  clearResultCard();
-  updateSelectionMarkers();
-}
-
-function setupInteractiveNodes(width, height) {
-  nodePositions = generateNodePositions(locations, width, height);
   nodeLayer = L.layerGroup().addTo(mapInstance);
   nodeMarkers = new Map();
 
@@ -313,31 +192,109 @@ function setupInteractiveNodes(width, height) {
       weight: 1.5,
       fillColor: "#e5e7eb",
       fillOpacity: 0.9,
-    })
-      .on("click", (evt) => {
-        L.DomEvent.stopPropagation(evt);
-        handleMapPick(name);
-      })
-      .bindTooltip(name, { direction: "top", offset: [0, -4], opacity: 0.9 });
+    }).bindTooltip(name, { direction: "top", offset: [0, -4], opacity: 0.9 });
 
     marker.addTo(nodeLayer);
     nodeMarkers.set(name, marker);
   });
+}
 
-  mapInstance.on("click", (evt) => {
-    const snapped = nearestNode(evt.latlng);
-    handleMapPick(snapped);
+function drawPathOnMap(path) {
+  clearPathOverlay();
+  if (!mapInstance || !path) return;
+  const coords = path.map((name) => nodePositions.get(name)).filter(Boolean);
+  if (coords.length < 2) return;
+  pathLine = L.polyline(coords, {
+    color: "#10b981",
+    weight: 6,
+    opacity: 0.85,
+    lineJoin: "round",
+  }).addTo(mapInstance);
+  mapInstance.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
+}
+
+function loadStoredPositions() {
+  try {
+    const raw = localStorage.getItem("lspu-node-positions");
+    if (!raw) return;
+    const obj = JSON.parse(raw);
+    nodePositions = new Map(Object.entries(obj));
+  } catch (e) {
+    console.warn("Failed to load saved node positions", e);
+  }
+}
+
+function savePositions() {
+  const obj = {};
+  nodePositions.forEach((v, k) => {
+    obj[k] = v;
   });
+  localStorage.setItem("lspu-node-positions", JSON.stringify(obj));
+}
 
-  updateSelectionMarkers();
+function updatePlacementPrompt() {
+  if (!placementActive) return;
+  const next = placementQueue[placementIndex];
+  errorBox.textContent = next
+    ? `Click the map to place: ${next} (${placementIndex + 1}/${placementQueue.length})`
+    : "";
+}
+
+function attachPlacementListener() {
+  if (!mapInstance) return;
+  mapInstance.off("click", handlePlacementClick);
+  mapInstance.once("click", handlePlacementClick);
+}
+
+function startPlacement() {
+  if (!mapInstance) return;
+  placementActive = true;
+  placementQueue = [...locations];
+  placementIndex = 0;
+  placementHistory = [];
+  updatePlacementPrompt();
+  placeNodesBtn.textContent = "Finish placing";
+  attachPlacementListener();
+  if (undoPlacementBtn) undoPlacementBtn.disabled = true;
+}
+
+function handlePlacementClick(e) {
+  if (!placementActive) return;
+  const current = placementQueue[placementIndex];
+  nodePositions.set(current, [e.latlng.lat, e.latlng.lng]);
+  placementHistory.push(current);
+  savePositions();
+  renderMarkers();
+
+  placementIndex += 1;
+  if (placementIndex >= placementQueue.length) {
+    placementActive = false;
+    placeNodesBtn.textContent = "Place nodes";
+    errorBox.textContent = "All nodes placed. You can re-place anytime.";
+    if (undoPlacementBtn) undoPlacementBtn.disabled = true;
+    return;
+  }
+
+  updatePlacementPrompt();
+  if (undoPlacementBtn) undoPlacementBtn.disabled = placementHistory.length === 0;
+  attachPlacementListener();
+}
+
+function stopPlacement() {
+  placementActive = false;
+  placeNodesBtn.textContent = "Place nodes";
+  errorBox.textContent = "";
+  if (mapInstance) mapInstance.off("click", handlePlacementClick);
+  if (undoPlacementBtn) undoPlacementBtn.disabled = true;
 }
 
 function renderPath(path, distance) {
   pathBox.innerHTML = "";
   if (!path) {
-    distanceBox.textContent = "—";
+    distanceBox.textContent = "No path";
+    pathBox.textContent = "";
     setNearestLandmark("—");
-    clearPathVisualization();
+    clearPathOverlay();
     return;
   }
   distanceBox.textContent = `${distance.toFixed(1)} meters`;
@@ -362,53 +319,52 @@ function renderPath(path, distance) {
 }
 
 computeBtn.addEventListener("click", () => {
-  selectedStart = startSelect.value || null;
-  selectedEnd = endSelect.value || null;
-  const start = selectedStart;
-  const end = selectedEnd;
+  const start = startSelect.value;
+  const end = endSelect.value;
   errorBox.textContent = "";
-
-  if (!start || !end) {
-    errorBox.textContent = "Click the map to set both start and destination.";
-    clearResultCard();
-    return;
-  }
 
   if (start === end) {
     errorBox.textContent = "Start and destination must differ.";
-    clearResultCard();
+    renderPath(null, null);
     return;
   }
 
   const { path, distance } = shortestPath(start, end);
   if (!path) {
     errorBox.textContent = "No path found between those points.";
-    clearResultCard("No path");
+    renderPath(null, null);
     return;
   }
   renderPath(path, distance);
-  updateSelectionMarkers();
 });
 
-startSelect.addEventListener("change", () => {
-  selectedStart = startSelect.value || null;
-  if (selectedStart === selectedEnd) {
-    selectedEnd = null;
-    endSelect.value = "";
-  }
-  resetPathAndCards();
-  updateSelectionMarkers();
-});
+if (placeNodesBtn) {
+  placeNodesBtn.addEventListener("click", () => {
+    if (!mapInstance) return;
+    if (placementActive) {
+      stopPlacement();
+      return;
+    }
+    startPlacement();
+  });
+}
 
-endSelect.addEventListener("change", () => {
-  selectedEnd = endSelect.value || null;
-  if (selectedEnd === selectedStart) {
-    selectedEnd = null;
-    endSelect.value = "";
-  }
-  resetPathAndCards();
-  updateSelectionMarkers();
-});
+if (undoPlacementBtn) {
+  undoPlacementBtn.addEventListener("click", () => {
+    if (!placementActive || placementIndex === 0) return;
+    // Remove the last placed node and step back in the queue
+    placementIndex -= 1;
+    const name = placementQueue[placementIndex];
+    nodePositions.delete(name);
+    if (placementHistory.length) placementHistory.pop();
+    savePositions();
+    renderMarkers();
+    updatePlacementPrompt();
+    attachPlacementListener();
+    undoPlacementBtn.disabled = placementIndex === 0;
+  });
+  undoPlacementBtn.disabled = true;
+}
 
 getStarted.addEventListener("click", () => {
   landing.classList.add("fade-out");
@@ -545,7 +501,8 @@ function initMap() {
       L.svgOverlay(svgElement, mapBounds).addTo(mapInstance);
       mapInstance.fitBounds(mapBounds);
       mapInstance.setMaxBounds(mapBounds);
-      setupInteractiveNodes(width, height);
+      loadStoredPositions();
+      renderMarkers();
     })
     .catch((err) => {
       console.error("SVG load failed, trying PNG fallback:", err);
@@ -567,7 +524,8 @@ function initMap() {
         L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
         mapInstance.fitBounds(mapBounds);
         mapInstance.setMaxBounds(mapBounds);
-        setupInteractiveNodes(imgWidth, imgHeight);
+        loadStoredPositions();
+        renderMarkers();
       } catch (pngErr) {
         console.error("PNG fallback also failed:", pngErr);
         const msg = document.createElement("div");
@@ -582,7 +540,7 @@ function initMap() {
 
 populateSelects();
 updateStats();
-clearResultCard();
+renderPath(null, null);
 initMap();
 initTheme();
 
