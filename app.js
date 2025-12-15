@@ -202,13 +202,16 @@ computeBtn.addEventListener("click", () => {
 
 getStarted.addEventListener("click", () => {
   landing.classList.add("fade-out");
-  appContainer.classList.remove("inactive");
+  // Delay app appearance slightly for staggered animation
+  setTimeout(() => {
+    appContainer.classList.remove("inactive");
+  }, 100);
   // Ensure Leaflet map sizes correctly after becoming visible
   if (mapInstance && mapBounds) {
     setTimeout(() => {
       mapInstance.invalidateSize();
       mapInstance.fitBounds(mapBounds);
-    }, 60);
+    }, 500);
   }
 });
 
@@ -257,8 +260,11 @@ if (themeToggleBtn) {
 }
 if (exitToLanding) {
   exitToLanding.addEventListener("click", () => {
-    landing.classList.remove("fade-out");
     appContainer.classList.add("inactive");
+    // Delay landing appearance for staggered animation
+    setTimeout(() => {
+      landing.classList.remove("fade-out");
+    }, 100);
     const saved = localStorage.getItem("theme");
     applyTheme(saved === "dark" ? "dark" : "light");
   });

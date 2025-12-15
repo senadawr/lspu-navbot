@@ -65,12 +65,14 @@ body.theme-dark::before {
   border-radius: 16px;
   backdrop-filter: blur(10px);
   overflow: hidden;
-  transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease;
+  transition: opacity 350ms cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 400ms cubic-bezier(0.4, 0, 0.2, 1), 
+              filter 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .app.inactive {
   opacity: 0;
-  transform: translateY(12px);
-  filter: blur(4px);
+  transform: translateY(32px) scale(0.96);
+  filter: blur(8px);
   pointer-events: none;
 }
 header {
@@ -330,10 +332,13 @@ button:disabled {
   box-shadow: 0 14px 36px rgba(15, 23, 42, 0.15);
   pointer-events: auto;
 }
+.page-brand .eyebrow {
+  color: var(--muted);
+}
 .brand-title {
   font-size: 15px;
   font-weight: 700;
-  color: #c1c1c1;
+  color: var(--muted);
   letter-spacing: 0.2px;
 }
 .landing {
@@ -345,16 +350,6 @@ button:disabled {
   background: none;
   z-index: 10;
   overflow: hidden;
-}
-.landing::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 65%, rgba(255, 255, 255, 0.05) 100%),
-    linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.08)),
-    url("sprites/campus.png") center center / cover no-repeat;
-  z-index: -1;
 }
 .landing__glow {
   position: absolute;
@@ -370,7 +365,7 @@ button:disabled {
 .landing__card {
   position: relative;
   max-width: 780px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 255, 0.96));
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 36px 40px;
@@ -391,14 +386,18 @@ button:disabled {
   font-size: 12px;
   color: #4f46e5;
 }
+body.theme-dark .landing__card .eyebrow {
+  color: #818cf8;
+}
 .landing__card h1 {
   margin: 0 0 12px;
   font-size: clamp(28px, 4vw, 38px);
   letter-spacing: 0.2px;
+  color: var(--text);
 }
 .sub {
   margin: 0 0 22px;
-  color: #4b5563;
+  color: var(--muted);
   line-height: 1.6;
 }
 .quick-stats {
@@ -411,7 +410,7 @@ button:disabled {
   min-width: 140px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #f7faff;
+  background: var(--surface);
   border: 1px solid var(--border);
 }
 .stat-num {
@@ -419,6 +418,9 @@ button:disabled {
   font-weight: 700;
   color: #1d4ed8;
   font-size: 16px;
+}
+body.theme-dark .stat-num {
+  color: #60a5fa;
 }
 .stat-label {
   color: var(--muted);
@@ -441,8 +443,9 @@ button:disabled {
 .cta:active { transform: translateY(0); box-shadow: 0 10px 26px rgba(59, 130, 246, 0.25); }
 .landing.fade-out {
   opacity: 0;
-  transform: scale(1.01);
-  transition: opacity 260ms ease, transform 260ms ease;
+  transform: scale(0.98) translateY(-20px);
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 
