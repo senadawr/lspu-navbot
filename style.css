@@ -13,15 +13,25 @@
 body {
   margin: 0;
   font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.06), transparent 35%),
-              radial-gradient(circle at 80% 0%, rgba(124, 58, 237, 0.06), transparent 40%),
-              #f2f5fb;
+  background: #f2f5fb;
   color: var(--text);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 65%, rgba(255, 255, 255, 0.05) 100%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.08)),
+    url("sprites/campus.png") center center / cover no-repeat;
+  z-index: -1;
 }
 .app {
   width: min(1100px, 100%);
@@ -208,11 +218,19 @@ button:disabled {
   display: grid;
   place-items: center;
   padding: 28px;
-  background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.08), transparent 35%),
-              radial-gradient(circle at 80% 10%, rgba(124, 58, 237, 0.08), transparent 40%),
-              #f4f7fc;
+  background: none;
   z-index: 10;
   overflow: hidden;
+}
+.landing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 65%, rgba(255, 255, 255, 0.05) 100%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.08)),
+    url("sprites/campus.png") center center / cover no-repeat;
+  z-index: -1;
 }
 .landing__glow {
   position: absolute;
