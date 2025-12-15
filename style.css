@@ -37,6 +37,25 @@ body {
   position: relative;
   overflow: hidden;
 }
+/* Smoothen theme toggles across key surfaces */
+body,
+.app,
+.panel,
+.landing__card,
+.page-brand__inner,
+.fun-facts-content,
+.fact-display,
+.map-card,
+.result-card,
+.quick-stats div,
+.stat,
+.settings-panel,
+select,
+button,
+.icon-btn,
+.chip {
+  transition: background-color 260ms ease, color 260ms ease, border-color 260ms ease, box-shadow 260ms ease;
+}
 body::before {
   content: "";
   position: fixed;
@@ -461,6 +480,13 @@ button:disabled {
   background: none;
   z-index: 10;
   overflow: hidden;
+}
+.landing__card-actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
 }
 .landing__glow {
   position: absolute;

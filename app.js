@@ -115,6 +115,8 @@ const appContainer = document.querySelector(".app");
 const openInfo = document.getElementById("open-info");
 const closeInfo = document.getElementById("close-info");
 const infoOverlay = document.getElementById("info-overlay");
+const openInfoLanding = document.getElementById("open-info-landing");
+const themeToggleLanding = document.getElementById("theme-toggle-landing");
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const exitToLanding = document.getElementById("exit-to-landing");
 let mapInstance = null;
@@ -222,9 +224,12 @@ function applyTheme(theme) {
     document.body.classList.remove("theme-dark");
   }
   localStorage.setItem("theme", theme);
+  const isDark = theme === "dark";
   if (themeToggleBtn) {
-    const isDark = theme === "dark";
     themeToggleBtn.textContent = isDark ? "🌙" : "🌞";
+  }
+  if (themeToggleLanding) {
+    themeToggleLanding.textContent = isDark ? "🌙" : "🌞";
   }
 }
 
@@ -244,6 +249,9 @@ function toggleInfo(open) {
 if (openInfo) {
   openInfo.addEventListener("click", () => toggleInfo(true));
 }
+if (openInfoLanding) {
+  openInfoLanding.addEventListener("click", () => toggleInfo(true));
+}
 if (closeInfo) {
   closeInfo.addEventListener("click", () => toggleInfo(false));
 }
@@ -254,6 +262,12 @@ if (infoOverlay) {
 }
 if (themeToggleBtn) {
   themeToggleBtn.addEventListener("click", () => {
+    const isDark = document.body.classList.contains("theme-dark");
+    applyTheme(isDark ? "light" : "dark");
+  });
+}
+if (themeToggleLanding) {
+  themeToggleLanding.addEventListener("click", () => {
     const isDark = document.body.classList.contains("theme-dark");
     applyTheme(isDark ? "light" : "dark");
   });
