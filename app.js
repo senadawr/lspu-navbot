@@ -314,6 +314,9 @@ const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const exitToLanding = document.getElementById("exit-to-landing");
 const placeNodesBtn = document.getElementById("place-nodes");
 const undoPlacementBtn = document.getElementById("undo-placement");
+const downloadPositionsBtn = document.getElementById("download-positions");
+const uploadPositionsBtn = document.getElementById("upload-positions-btn");
+const uploadPositionsInput = document.getElementById("upload-positions");
 let mapInstance = null;
 let mapBounds = null;
 let nodePositions = new Map();
@@ -401,23 +404,73 @@ function drawPathOnMap(path) {
   mapInstance.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
 }
 
-function loadStoredPositions() {
+function positionsFromLocalStorage() {
   try {
     const raw = localStorage.getItem("lspu-node-positions");
-    if (!raw) return;
-    const obj = JSON.parse(raw);
-    nodePositions = new Map(Object.entries(obj));
+    if (!raw) return {};
+    return JSON.parse(raw);
   } catch (e) {
     console.warn("Failed to load saved node positions", e);
+    return {};
   }
 }
 
+async function positionsFromDisk() {
+  try {
+    const res = await fetch("node-positions.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.warn("Falling back to local positions; fetch failed", e);
+    return {};
+  }
+}
+
+async function hydratePositions() {
+  const [disk, local] = await Promise.all([
+    positionsFromDisk(),
+    Promise.resolve(positionsFromLocalStorage()),
+  ]);
+  const merged = { ...disk, ...local };
+  nodePositions = new Map(Object.entries(merged));
+}
+
 function savePositions() {
-  const obj = {};
-  nodePositions.forEach((v, k) => {
-    obj[k] = v;
-  });
+  const obj = Object.fromEntries(nodePositions.entries());
   localStorage.setItem("lspu-node-positions", JSON.stringify(obj));
+}
+
+function downloadPositionsFile() {
+  const obj = Object.fromEntries(nodePositions.entries());
+  const json = JSON.stringify(obj, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "node-positions.json";
+  link.click();
+  URL.revokeObjectURL(url);
+  errorBox.textContent =
+    "Coordinates downloaded. Commit node-positions.json to keep them across branches.";
+}
+
+function importPositionsFromFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result || "{}");
+      nodePositions = new Map(Object.entries(parsed || {}));
+      savePositions();
+      renderMarkers();
+      errorBox.textContent =
+        "Coordinates loaded. Commit node-positions.json so they persist in git.";
+    } catch (err) {
+      console.error("Import failed", err);
+      errorBox.textContent = "Invalid coordinates file.";
+    }
+  };
+  reader.readAsText(file);
 }
 
 function updatePlacementPrompt() {
@@ -571,6 +624,19 @@ if (undoPlacementBtn) {
   undoPlacementBtn.disabled = true;
 }
 
+if (downloadPositionsBtn) {
+  downloadPositionsBtn.addEventListener("click", downloadPositionsFile);
+}
+
+if (uploadPositionsBtn && uploadPositionsInput) {
+  uploadPositionsBtn.addEventListener("click", () => uploadPositionsInput.click());
+  uploadPositionsInput.addEventListener("change", (e) => {
+    const [file] = e.target.files || [];
+    importPositionsFromFile(file);
+    uploadPositionsInput.value = "";
+  });
+}
+
 getStarted.addEventListener("click", () => {
   landing.classList.add("fade-out");
   // Delay app appearance slightly for staggered animation
@@ -707,8 +773,7 @@ function initMap() {
         L.svgOverlay(svgElement, mapBounds).addTo(mapInstance);
         mapInstance.fitBounds(mapBounds);
         mapInstance.setMaxBounds(mapBounds);
-        loadStoredPositions();
-        renderMarkers();
+        hydratePositions().then(renderMarkers);
       });
   };
 
@@ -730,8 +795,7 @@ function initMap() {
     L.imageOverlay("sprites/map.svg", mapBounds).addTo(mapInstance);
     mapInstance.fitBounds(mapBounds);
     mapInstance.setMaxBounds(mapBounds);
-    loadStoredPositions();
-    renderMarkers();
+    hydratePositions().then(renderMarkers);
   };
 
   trySvgOverlay().catch((err) => {

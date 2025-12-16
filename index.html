@@ -102,10 +102,13 @@
           <h3 style="margin:0 0 10px;font-size:15px;">Campus map (Leaflet overlay)</h3>
           <div id="map"></div>
           
-          <p class="map-note">Use scroll to pan/zoom. Click “Place nodes” then click each labeled room on the map to store coordinates.</p>
+          <p class="map-note">Use scroll to pan/zoom. Click “Place nodes” then click each labeled room on the map to store coordinates. Download and commit coordinates so they persist across branches.</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
             <button id="place-nodes" class="icon-btn" style="width:auto;">Place nodes</button>
             <button id="undo-placement" class="icon-btn" style="width:auto;">Undo last placement</button>
+            <button id="download-positions" class="icon-btn" style="width:auto;">Download coords JSON</button>
+            <button id="upload-positions-btn" class="icon-btn" style="width:auto;">Upload coords JSON</button>
+            <input id="upload-positions" type="file" accept="application/json" style="display:none;">
           </div>
         </div>
       </section>
