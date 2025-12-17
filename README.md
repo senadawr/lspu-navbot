@@ -2,6 +2,8 @@
 
 Never get lost on campus again! Quickly find the best route to any building or room at LSPU Los Baños Campus. Whether you're trying to make it to your 8am class or finding the cafeteria, this tool has you covered.
 
+Visit the site in real-time [here](https://senadawr.github.io/lspu-navbot/)
+
 ## ✨ What You Can Do
 
 - **Find Any Location**: Search from 180+ buildings, classrooms, and facilities on campus
@@ -13,7 +15,7 @@ Never get lost on campus again! Quickly find the best route to any building or r
 
 ## 🎯 How to Use
 
-1. **Open the app** – Just visit the link your school provides or open `index.html` in your browser
+1. **Open the app** – Just visit the link above or open `index.html` in your browser
 2. **Click "Get Started"** on the welcome screen
 3. **Enter your starting location** (e.g., "Gate 1", "Library", or your current building)
 4. **Enter your destination** (e.g., "CCJE Room 205", "Cafeteria")
