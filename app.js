@@ -341,8 +341,6 @@ const openInfoLanding = document.getElementById("open-info-landing");
 const themeToggleLanding = document.getElementById("theme-toggle-landing");
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const exitToLanding = document.getElementById("exit-to-landing");
-const placeJoeyLinaBtn = document.getElementById("place-joey-lina");
-const downloadPositionsBtn = document.getElementById("download-positions");
 let mapInstance = null;
 let mapBounds = null;
 let nodePositions = new Map();
@@ -351,8 +349,7 @@ let nodeLayer = null;
 let pathLine = null;
 let selectedStart = null;
 let selectedEnd = null;
-let placementActive = false;
-const placementTargetName = "Joey Lina Hidden Pathway";
+
 
 function populateSelects() {
   const fragStart = document.createDocumentFragment();
@@ -428,44 +425,7 @@ function drawPathOnMap(path) {
   mapInstance.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
 }
 
-function startPlacementMode() {
-  if (!mapInstance) return;
-  placementActive = true;
-  const note = document.querySelector('.map-note');
-  if (note) note.textContent = 'Placement active: click on the map to set position for "Joey Lina Hidden Pathway".';
-  const onClick = (e) => {
-    if (!placementActive) return;
-    const { lat, lng } = e.latlng;
-    const pos = [lat, lng];
-    nodePositions.set(placementTargetName, pos);
-    renderMarkers();
-    placementActive = false;
-    mapInstance.off('click', onClick);
-    const noteEl = document.querySelector('.map-note');
-    if (noteEl) noteEl.textContent = 'Node placed. You may compute paths or place again.';
-  };
-  mapInstance.on('click', onClick);
-}
 
-function downloadPositions() {
-  try {
-    const obj = Object.fromEntries(nodePositions);
-    const json = JSON.stringify(obj, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'node-positions.json';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 0);
-  } catch (e) {
-    console.warn('Failed to download positions', e);
-  }
-}
 
 async function positionsFromDisk() {
   try {
@@ -637,17 +597,7 @@ if (exitToLanding) {
   });
 }
 
-if (placeJoeyLinaBtn) {
-  placeJoeyLinaBtn.addEventListener('click', () => {
-    startPlacementMode();
-  });
-}
 
-if (downloadPositionsBtn) {
-  downloadPositionsBtn.addEventListener('click', () => {
-    downloadPositions();
-  });
-}
 
 function initMap() {
   const mapEl = document.getElementById("map");
