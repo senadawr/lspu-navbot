@@ -503,10 +503,6 @@
     434.75,
     336.06993145468886
   ],
-  "Joey Lina Gate": [
-    445.875,
-    331.51433492120094
-  ],
   "Joey Lina Stage": [
     417.375,
     341.63628013246404
@@ -718,5 +714,141 @@
   "Waiting Shed": [
     504.3125,
     447.9391235847446
+  ],
+  "Joey Lina Gate": [
+    417.4375,
+    354.13030064526123
+  ],
+  "CCS Waiting Shed": [
+    572.625,
+    494.38160366575573
+  ],
+  "Sports and Cultural Office Room": [
+    427.5,
+    350.00496122429047
+  ],
+  "Sports Faculty Office": [
+    431.8125,
+    349.87999893773167
+  ],
+  "COF Consultation Room": [
+    409.375,
+    242.44197094955493
+  ],
+  "CHMT Room Office 3": [
+    438.8125,
+    346.75007733365555
+  ],
+  "CHMT Stock Room": [
+    446.5625,
+    343.8759447428031
+  ],
+  "CFND Garage": [
+    458.09375,
+    394.62327556345184
+  ],
+  "Admin Building Entrance": [
+    453.3125,
+    391.6235301291799
+  ],
+  "Admin Building Hallway 1": [
+    447.6875,
+    382.62624549694607
+  ],
+  "Admin Building Alumni Office": [
+    451.0625,
+    390.0647835699655
+  ],
+  "Management Information Planning and Development Office": [
+    448.0625,
+    385.40855147329955
+  ],
+  "Office of the Auditor": [
+    445.125,
+    381.09735258702085
+  ],
+  "Deputy Campus Director Office": [
+    442.03125,
+    376.44250741270537
+  ],
+  "Records and Management Office": [
+    441.5625,
+    373.974502253169
+  ],
+  "Office of the Supply and Property Management": [
+    437.96875,
+    369.7570250818094
+  ],
+  "Admin Building Hallway 2": [
+    445.59375,
+    373.69097058997664
+  ],
+  "Admin Building Stairs 2": [
+    448.28125,
+    378.06465061953475
+  ],
+  "Admin Building CR": [
+    450.1875,
+    383.97085347773327
+  ],
+  "PPSD": [
+    453.21875,
+    388.7506609386075
+  ],
+  "Admin Building Outside Stairs": [
+    451.6875,
+    394.62526590086156
+  ],
+  "Admin Building 2F Hallway": [
+    450.375,
+    375.8844114103516
+  ],
+  "Registrar's Office": [
+    454.8125,
+    390.5672726570845
+  ],
+  "Guard House": [
+    482.21875,
+    432.84205384853277
+  ],
+  "CFND Sensory Lab": [
+    476.5,
+    422.937181342523
+  ],
+  "CFND Pathway": [
+    469.75,
+    414.5647081430832
+  ],
+  "NSTP Office": [
+    472.25,
+    418.9383881726413
+  ],
+  "CFND Empty Room": [
+    467.375,
+    414.8771138594802
+  ],
+  "CFND Corridor": [
+    460.9375,
+    405.1300555078935
+  ],
+  "CFND Room 1": [
+    462.3125,
+    408.6897835699655
+  ],
+  "CFND Faculty Room": [
+    457.25,
+    402.6308097767174
+  ],
+  "BAO Pathway": [
+    486.625,
+    417.0055476894022
+  ],
+  "BAO": [
+    484.125,
+    411.882433361462
+  ],
+  "Meeting Room 2": [
+    489.375,
+    406.63401732599226
   ]
 }

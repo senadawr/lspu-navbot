@@ -5,6 +5,8 @@ const edges = [
   ["Library", "Gate 2", 535],
   ["Library", "Hall", 500],
   ["Gate 1", "Hall", 10],
+  ["Gate 1", "Guard House", 12],
+  ["Gate 1", "BAO Pathway", 40],
   ["Gate 2", "Hall", 36],
   ["Hall", "End of Hall", 20],
   ["Hall", "CBAA Path", 6],
@@ -30,14 +32,13 @@ const edges = [
 
   // Path B
   ["End of Hall", "Alumni", 61],
+  ["End of Hall", "Waiting Shed", 12],
   ["End of Hall", "Lacson Gym Entrance", 50],
-  ["End of Hall", "New CAS Hallway", 30],
-  ["End of Hall", "CBAA CR 1", 2],
+  ["End of Hall", "New CAS Hallway", 67],
   ["Alumni", "Computer Shop", 8],
-  ["Alumni", "Registrar Hallway", 3],
-  ["Computer Shop", "Waiting Shed", 6],
-  ["Waiting Shed", "Lacson Gym Entrance", 5],
-  ["Waiting Shed", "Old CAS Path", 24],
+  ["Computer Shop", "CCS Waiting Shed", 6],
+  ["CCS Waiting Shed", "Lacson Gym Entrance", 5],
+  ["CCS Waiting Shed", "Old CAS Path", 24],
   ["Lacson Gym Entrance", "Stage", 40],
   ["Stage", "CTE CR 2", 5],
   ["CTE CR 2", "CTE New Room", 3],
@@ -75,7 +76,6 @@ const edges = [
   ["Old CAS Path", "Psych Lab Entrance", 8],
   ["Old CAS Path", "TSL Entrance", 8],
   ["Old CAS Path", "CCS Faculty Room Entrance", 8],
-  ["Old CAS Path", "CFND Room 1 Entrance", 8],
   ["Old CAS Path", "Old CAS Faculty", 8],
   ["Old CAS Path", "Old CAS Stairs 1", 8],
   ["Old CAS Stairs 1", "Old CAS 2F Hallway", 5],
@@ -122,7 +122,6 @@ const edges = [
   ["New CAS Room 7", "New CAS Room 8", 5],
   ["New CAS Room 8", "New CAS Room 9", 5],
   ["New CAS Room 9", "New CAS Room 10", 5],
-  ["New CAS Hallway", "End of Hall", 12],
   ["End of Hall", "CBAA Hallway", 5],
 
   // Path F - CBAA
@@ -156,6 +155,9 @@ const edges = [
   ["University Clinic", "Cafeteria Entrance", 10],
   ["New OSAS Entrance", "OSAS", 16],
   ["New OSAS Entrance", "Office of the President Path", 8],
+  ["BAO Pathway", "BAO", 7],
+  ["BAO Pathway", "Open Court B", 44],
+  ["BAO Pathway", "Meeting Room 2", 26],
   
   // Path I - Office of the President & Guesthouse
   ["Office of the President Path", "Office of the President", 8],
@@ -167,7 +169,35 @@ const edges = [
   ["Open Court A", "Open Court B", 40],
   ["Open Court A", "CFND Waiting Shed", 18],
   ["Open Court B", "CHMT Room 1", 18],
+
+  //Admin Building
+  ["CFND Waiting Shed", "CFND Garage", 12],
+  ["CFND Garage", "Admin Building Entrance", 7],
+  ["Admin Building Entrance", "Admin Building Hallway 1", 3],
+  ["Admin Building Hallway 1", "Admin Building Alumni Office", 3],
+  ["Admin Building Hallway 1", "Management Information Planning and Development Office", 3],
+  ["Admin Building Hallway 1", "Office of the Auditor", 3],
+  ["Admin Building Hallway 1", "Deputy Campus Director Office", 3],
+  ["Admin Building Hallway 1", "Records and Management Office", 3],
+  ["Records and Management Office", "Office of the Supply and Property Management", 3],
+  ["Admin Building Hallway 1", "Admin Building Hallway 2", 3],
+  ["Admin Building Hallway 2", "Admin Building Stairs 2", 3],
+  ["Admin Building Hallway 1", "Admin Building CR", 3],
+  ["Admin Building Hallway 1", "PPSD", 3],
+  ["CFND Garage", "Adming Building Outside Stairs", 3],
+  ["Admin Building Outside Stairs", "Admin Building 2F Hallway", 3],
+  ["Admin Building 2F Hallway", "Registrar's Office", 3],
   
+  //CFND Building
+  ["Guard House", "CFND Sensory Lab", 16],
+  ["Guard House", "CFND Pathway", 10],
+  ["CFND Pathway", "NSTP Office", 5],
+  ["CFND Pathway", "CFND Empty Room", 5],
+  ["CFND Pathway", "CFND Corridor", 5],
+  ["CFND Corridor", "CFND Room 1", 5],
+  ["CFND Corridor", "CFND Faculty Room", 5],
+
+
   // CHMT PATHS
   ["CHMT Room 1", "CHMT Room 2", 5],
   ["CHMT Room 1", "CHMT Dean's Office", 14],
@@ -230,8 +260,8 @@ const edges = [
   ["COF New Building Pathway", "Old Waiting Area", 5],
   ["COF New Building Pathway", "Fishpond", 15],
   ["Fishpond", "COF New Building Stairs", 23],
-  ["COF New Building Stairs", "J Consultation Room", 4.5],
-  ["J Consultation Room", "CR", 4.5],
+  ["COF New Building Stairs", "COF Consultation Room", 4.5],
+  ["COF Consultation Room", "CR", 4.5],
   ["CR", "COF Faculty Room", 4.5],
   ["CR", "New Building Room 4", 4.5],
   ["CR", "Fisheries Student Council", 4.5],
@@ -320,7 +350,88 @@ let nodeLayer = null;
 let pathLine = null;
 let selectedStart = null;
 let selectedEnd = null;
-// Node placement is disabled; positions are read-only from node-positions.json
+
+// Temporary node placement for fixing specific nodes
+const nodesToFix = [
+  "Joey Lina Gate", "CCS Waiting Shed", "Waiting Shed", "Sports and Cultural Office Room",
+  "Sports Faculty Office", "COF Consultation Room", "CHMT Room Office 3", "CHMT Stock Room",
+  "CFND Garage", "Admin Building Entrance", "Admin Building Hallway 1", "Admin Building Alumni Office",
+  "Management Information Planning and Development Office", "Office of the Auditor", "Deputy Campus Director Office",
+  "Records and Management Office", "Office of the Supply and Property Management", "Admin Building Hallway 2",
+  "Admin Building Stairs 2", "Admin Building CR", "PPSD", "Admin Building Outside Stairs",
+  "Admin Building 2F Hallway", "Registrar's Office", "Guard House", "CFND Sensory Lab",
+  "CFND Pathway", "NSTP Office", "CFND Empty Room", "CFND Corridor",
+  "CFND Room 1", "CFND Faculty Room", "BAO Pathway", "BAO", "Meeting Room 2"
+];
+let fixPlacementActive = false;
+let fixPlacementIndex = 0;
+let fixPlacementHistory = [];
+
+function undoFixPlacement() {
+  if (fixPlacementHistory.length === 0) return;
+  fixPlacementIndex -= 1;
+  const name = fixPlacementHistory.pop();
+  nodePositions.delete(name);
+  renderMarkers();
+  updateFixPlacementPrompt();
+}
+function startFixPlacement() {
+  if (!mapInstance) return;
+  fixPlacementActive = true;
+  fixPlacementIndex = 0;
+  fixPlacementHistory = [];
+  updateFixPlacementPrompt();
+  mapInstance.off("click");
+  attachFixPlacementListener();
+}
+function updateFixPlacementPrompt() {
+  if (!fixPlacementActive) return;
+  const next = nodesToFix[fixPlacementIndex];
+  errorBox.textContent = next
+    ? `Click map to place: ${next} (${fixPlacementIndex + 1}/${nodesToFix.length})`
+    : "Placement complete!";
+}
+
+function attachFixPlacementListener() {
+  if (!mapInstance) return;
+  mapInstance.once("click", handleFixPlacementClick);
+}
+
+function handleFixPlacementClick(e) {
+  if (!fixPlacementActive) return;
+  const current = nodesToFix[fixPlacementIndex];
+  nodePositions.set(current, [e.latlng.lat, e.latlng.lng]);
+  fixPlacementHistory.push(current);
+  console.log(`Placed: ${current} at [${e.latlng.lat}, ${e.latlng.lng}]`);
+  renderMarkers();
+  
+  fixPlacementIndex += 1;
+  if (fixPlacementIndex >= nodesToFix.length) {
+    fixPlacementActive = false;
+    errorBox.textContent = `All ${nodesToFix.length} nodes placed! Download the updated coordinates.`;
+    return;
+  }
+  
+  updateFixPlacementPrompt();
+  attachFixPlacementListener();
+}
+
+function downloadFixedPositions() {
+  const obj = Object.fromEntries(nodePositions.entries());
+  const json = JSON.stringify(obj, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "node-positions.json";
+  link.click();
+  URL.revokeObjectURL(url);
+  errorBox.textContent = "Updated coordinates downloaded. Replace node-positions.json and refresh.";
+}
+
+// Expose globally for console access
+window.startFixPlacement = startFixPlacement;
+window.downloadFixedPositions = downloadFixedPositions;
 
 function populateSelects() {
   const fragStart = document.createDocumentFragment();
@@ -653,6 +764,34 @@ updateStats();
 renderPath(null, null);
 initMap();
 initTheme();
+
+// Set up fix placement buttons
+const fixNodesBtn = document.getElementById("fix-nodes-btn");
+const undoFixBtn = document.getElementById("undo-fix-placement");
+const downloadFixedBtn = document.getElementById("download-fixed-positions");
+
+if (fixNodesBtn) {
+  fixNodesBtn.addEventListener("click", () => {
+    if (!mapInstance) return;
+    if (fixPlacementActive) {
+      fixPlacementActive = false;
+      fixNodesBtn.textContent = "Fix node positions";
+      errorBox.textContent = "";
+      mapInstance.off("click", handleFixPlacementClick);
+      return;
+    }
+    startFixPlacement();
+    fixNodesBtn.textContent = "Stop fixing";
+  });
+}
+
+if (undoFixBtn) {
+  undoFixBtn.addEventListener("click", undoFixPlacement);
+}
+
+if (downloadFixedBtn) {
+  downloadFixedBtn.addEventListener("click", downloadFixedPositions);
+}
 
 // Fun Facts Tab Toggle and Random Facts
 const factsToggle = document.getElementById("facts-toggle");
