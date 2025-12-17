@@ -84,6 +84,12 @@ body.theme-dark::before {
   top: 50%;
   transform: translateY(-50%);
   z-index: 1000;
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+.fun-facts-tab.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (max-width: 900px) {
@@ -438,8 +444,20 @@ button:disabled {
   display: grid;
   place-items: center;
   z-index: 30;
+  opacity: 1;
+  transition: opacity 300ms ease;
 }
-.settings-overlay.hidden { display: none; }
+.settings-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  display: grid;
+}
+.settings-panel {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.settings-overlay.hidden .settings-panel {
+  transform: scale(0.95) translateY(-10px);
+}
 .settings-panel {
   width: min(520px, 92vw);
   background: var(--panel);

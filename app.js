@@ -10,6 +10,7 @@ const edges = [
   ["Gate 2", "Hall", 36],
   ["Hall", "End of Hall", 20],
   ["Hall", "CBAA Path", 6],
+  ["Hall", "CBAA Hallway", 34],
   ["Hall", "GAD", 8],
   ["Gate 1", "Main Road", 7],
 
@@ -144,6 +145,10 @@ const edges = [
   ["CBAA 2F Hallway", "CBAA Stairs", 6.6],
   ["CBAA Stairs", "CBAA Hallway", 8],
   ["CBAA CR 2", "CBAA Path", 8],
+  ["CBAA Hallway", "CBAA Room 101", 6.6],
+  ["CBAA Hallway", "CBAA Room 102", 6.6],
+  ["CBAA Hallway", "CBAA Room 103", 6.6],
+  ["CBAA Hallway", "CBAA Student Council", 6.6],
   ["CBAA Room 101", "CBAA Room 102", 6.6],
   ["CBAA Room 102", "CBAA Room 103", 6.6],
   ["CBAA Room 103", "CBAA Student Council", 6.6],
@@ -772,13 +777,16 @@ if (shuffleBtn) {
 const factsMobileBtn = document.getElementById("facts-toggle-mobile");
 if (factsMobileBtn && funFactsTab) {
   factsMobileBtn.addEventListener("click", () => {
-    const isHidden = funFactsTab.style.display === "none";
+    const isHidden = funFactsTab.classList.contains("hidden");
     if (isHidden) {
-      funFactsTab.style.display = "block";
+      funFactsTab.classList.remove("hidden");
       factsMobileBtn.classList.add("active");
     } else {
-      funFactsTab.style.display = "none";
+      funFactsTab.classList.add("hidden");
       factsMobileBtn.classList.remove("active");
+    }
+    if (window.feather && typeof window.feather.replace === 'function') {
+      window.feather.replace();
     }
   });
   
@@ -786,8 +794,8 @@ if (factsMobileBtn && funFactsTab) {
   document.addEventListener("click", (e) => {
     const isClickInsideFacts = funFactsTab.contains(e.target);
     const isClickOnBtn = factsMobileBtn.contains(e.target);
-    if (!isClickInsideFacts && !isClickOnBtn && funFactsTab.style.display === "block") {
-      funFactsTab.style.display = "none";
+    if (!isClickInsideFacts && !isClickOnBtn && !funFactsTab.classList.contains("hidden")) {
+      funFactsTab.classList.add("hidden");
       factsMobileBtn.classList.remove("active");
     }
   });
