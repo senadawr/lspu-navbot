@@ -76,7 +76,6 @@
         <div class="result-card">
           <p class="result-title">Shortest distance</p>
           <p id="distance" class="distance">—</p>
-          <p id="time" class="distance" style="font-size:16px;color:#0f172a;margin:0 0 8px;">—</p>
           <div class="path" id="path"></div>
         </div>
 
@@ -86,7 +85,7 @@
       </section>
 
       <section class="panel">
-        <h3 style="margin:0 0 12px;font-size:16px;">Graph overview</h3>
+        <h3 style="margin:0 0 12px;font-size:16px;">Overview</h3>
         <div class="graph-info">
           <div class="stat">
             <strong>Nearest landmark</strong>
@@ -101,15 +100,7 @@
         <div class="map-card">
           <h3 style="margin:0 0 10px;font-size:15px;">Campus map (Leaflet overlay)</h3>
           <div id="map"></div>
-          
-          <p class="map-note">Use scroll to pan/zoom. Click “Place nodes” then click each labeled room on the map to store coordinates. Download and commit coordinates so they persist across branches.</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-            <button id="place-nodes" class="icon-btn" style="width:auto;">Place nodes</button>
-            <button id="undo-placement" class="icon-btn" style="width:auto;">Undo last placement</button>
-            <button id="download-positions" class="icon-btn" style="width:auto;">Download coords JSON</button>
-            <button id="upload-positions-btn" class="icon-btn" style="width:auto;">Upload coords JSON</button>
-            <input id="upload-positions" type="file" accept="application/json" style="display:none;">
-          </div>
+          <p class="map-note">Use the scroll wheel to pan/zoom the map.</p>
         </div>
       </section>
     </div>

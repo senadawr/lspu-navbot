@@ -312,11 +312,6 @@ const openInfoLanding = document.getElementById("open-info-landing");
 const themeToggleLanding = document.getElementById("theme-toggle-landing");
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const exitToLanding = document.getElementById("exit-to-landing");
-const placeNodesBtn = document.getElementById("place-nodes");
-const undoPlacementBtn = document.getElementById("undo-placement");
-const downloadPositionsBtn = document.getElementById("download-positions");
-const uploadPositionsBtn = document.getElementById("upload-positions-btn");
-const uploadPositionsInput = document.getElementById("upload-positions");
 let mapInstance = null;
 let mapBounds = null;
 let nodePositions = new Map();
@@ -325,10 +320,7 @@ let nodeLayer = null;
 let pathLine = null;
 let selectedStart = null;
 let selectedEnd = null;
-let placementActive = false;
-let placementQueue = [];
-let placementIndex = 0;
-let placementHistory = [];
+// Node placement is disabled; positions are read-only from node-positions.json
 
 function populateSelects() {
   const fragStart = document.createDocumentFragment();
@@ -404,129 +396,20 @@ function drawPathOnMap(path) {
   mapInstance.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
 }
 
-function positionsFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem("lspu-node-positions");
-    if (!raw) return {};
-    return JSON.parse(raw);
-  } catch (e) {
-    console.warn("Failed to load saved node positions", e);
-    return {};
-  }
-}
-
 async function positionsFromDisk() {
   try {
     const res = await fetch("node-positions.json", { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (e) {
-    console.warn("Falling back to local positions; fetch failed", e);
+    console.warn("Failed to load node positions", e);
     return {};
   }
 }
 
 async function hydratePositions() {
-  const [disk, local] = await Promise.all([
-    positionsFromDisk(),
-    Promise.resolve(positionsFromLocalStorage()),
-  ]);
-  const merged = { ...disk, ...local };
-  nodePositions = new Map(Object.entries(merged));
-}
-
-function savePositions() {
-  const obj = Object.fromEntries(nodePositions.entries());
-  localStorage.setItem("lspu-node-positions", JSON.stringify(obj));
-}
-
-function downloadPositionsFile() {
-  const obj = Object.fromEntries(nodePositions.entries());
-  const json = JSON.stringify(obj, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "node-positions.json";
-  link.click();
-  URL.revokeObjectURL(url);
-  errorBox.textContent =
-    "Coordinates downloaded. Commit node-positions.json to keep them across branches.";
-}
-
-function importPositionsFromFile(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const parsed = JSON.parse(e.target.result || "{}");
-      nodePositions = new Map(Object.entries(parsed || {}));
-      savePositions();
-      renderMarkers();
-      errorBox.textContent =
-        "Coordinates loaded. Commit node-positions.json so they persist in git.";
-    } catch (err) {
-      console.error("Import failed", err);
-      errorBox.textContent = "Invalid coordinates file.";
-    }
-  };
-  reader.readAsText(file);
-}
-
-function updatePlacementPrompt() {
-  if (!placementActive) return;
-  const next = placementQueue[placementIndex];
-  errorBox.textContent = next
-    ? `Click the map to place: ${next} (${placementIndex + 1}/${placementQueue.length})`
-    : "";
-}
-
-function attachPlacementListener() {
-  if (!mapInstance) return;
-  mapInstance.off("click", handlePlacementClick);
-  mapInstance.once("click", handlePlacementClick);
-}
-
-function startPlacement() {
-  if (!mapInstance) return;
-  placementActive = true;
-  placementQueue = [...locations];
-  placementIndex = 0;
-  placementHistory = [];
-  updatePlacementPrompt();
-  placeNodesBtn.textContent = "Finish placing";
-  attachPlacementListener();
-  if (undoPlacementBtn) undoPlacementBtn.disabled = true;
-}
-
-function handlePlacementClick(e) {
-  if (!placementActive) return;
-  const current = placementQueue[placementIndex];
-  nodePositions.set(current, [e.latlng.lat, e.latlng.lng]);
-  placementHistory.push(current);
-  savePositions();
-  renderMarkers();
-
-  placementIndex += 1;
-  if (placementIndex >= placementQueue.length) {
-    placementActive = false;
-    placeNodesBtn.textContent = "Place nodes";
-    errorBox.textContent = "All nodes placed. You can re-place anytime.";
-    if (undoPlacementBtn) undoPlacementBtn.disabled = true;
-    return;
-  }
-
-  updatePlacementPrompt();
-  if (undoPlacementBtn) undoPlacementBtn.disabled = placementHistory.length === 0;
-  attachPlacementListener();
-}
-
-function stopPlacement() {
-  placementActive = false;
-  placeNodesBtn.textContent = "Place nodes";
-  errorBox.textContent = "";
-  if (mapInstance) mapInstance.off("click", handlePlacementClick);
-  if (undoPlacementBtn) undoPlacementBtn.disabled = true;
+  const disk = await positionsFromDisk();
+  nodePositions = new Map(Object.entries(disk || {}));
 }
 
 function formatMinutes(totalMinutes) {
@@ -596,46 +479,7 @@ computeBtn.addEventListener("click", () => {
   renderPath(path, distance);
 });
 
-if (placeNodesBtn) {
-  placeNodesBtn.addEventListener("click", () => {
-    if (!mapInstance) return;
-    if (placementActive) {
-      stopPlacement();
-      return;
-    }
-    startPlacement();
-  });
-}
-
-if (undoPlacementBtn) {
-  undoPlacementBtn.addEventListener("click", () => {
-    if (!placementActive || placementIndex === 0) return;
-    // Remove the last placed node and step back in the queue
-    placementIndex -= 1;
-    const name = placementQueue[placementIndex];
-    nodePositions.delete(name);
-    if (placementHistory.length) placementHistory.pop();
-    savePositions();
-    renderMarkers();
-    updatePlacementPrompt();
-    attachPlacementListener();
-    undoPlacementBtn.disabled = placementIndex === 0;
-  });
-  undoPlacementBtn.disabled = true;
-}
-
-if (downloadPositionsBtn) {
-  downloadPositionsBtn.addEventListener("click", downloadPositionsFile);
-}
-
-if (uploadPositionsBtn && uploadPositionsInput) {
-  uploadPositionsBtn.addEventListener("click", () => uploadPositionsInput.click());
-  uploadPositionsInput.addEventListener("change", (e) => {
-    const [file] = e.target.files || [];
-    importPositionsFromFile(file);
-    uploadPositionsInput.value = "";
-  });
-}
+// Placement controls removed; positions are static and loaded from node-positions.json
 
 getStarted.addEventListener("click", () => {
   landing.classList.add("fade-out");
@@ -764,7 +608,7 @@ function initMap() {
 
         mapInstance = L.map("map", {
           crs: L.CRS.Simple,
-          minZoom: -4,
+          minZoom: -0.1,
           maxZoom: 8,
           maxBoundsViscosity: 1.0,
         });
