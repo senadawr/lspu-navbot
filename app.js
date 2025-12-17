@@ -710,7 +710,7 @@ const funFacts = [
   { category: "History", text: "It earned university status in 2009 and became LSPU." },
   { category: "History", text: "LSPU is named after Laguna, the 'Resort Capital of the Philippines.'" },
   { category: "History", text: "The Los Banos campus serves as a satellite; the main campus is in Santa Cruz." },
-  { category: "History", text: "Students often call each other 'Ka-Piyu' (from 'Piyu' meaning chick)." },
+  { category: "History", text: "Students often call each other 'Ka-Piyu' (from LS 'Piyu')." },
   { category: "History", text: "LSPU now spans multiple campuses across Laguna province." },
   { category: "History", text: "It is known for providing affordable, quality education to Lagunenses." },
   { category: "Geography", text: "The Los Banos campus sits at the foot of Mount Makiling." },
