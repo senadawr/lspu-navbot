@@ -32,9 +32,11 @@ const edges = [
 
   // Path B
   ["End of Hall", "Alumni", 61],
+  ["End of Hall", "Hall", 13],
   ["End of Hall", "Waiting Shed", 12],
   ["End of Hall", "Lacson Gym Entrance", 50],
   ["End of Hall", "New CAS Hallway", 67],
+  ["End of Hall", "Old CAS Path", 42],
   ["Alumni", "Computer Shop", 8],
   ["Computer Shop", "CCS Waiting Shed", 6],
   ["CCS Waiting Shed", "Lacson Gym Entrance", 5],
@@ -97,7 +99,7 @@ const edges = [
   ["CCS Hallway", "CR CCS", 5],
   ["CCS Hallway", "CCS Stairs 2", 5],
   ["CCS Hallway", "CTE New Room", 3],
-  ["CCS Hallway", "New CAS Hallway", 12],
+  ["CCS Hallway", "Old CAS Path", 12],
 
   //CCS HALLWAY TO CCS 2F
   ["CCS Stairs 1", "CCS 2F Hallway", 5],
