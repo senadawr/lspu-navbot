@@ -615,49 +615,26 @@ function initMap() {
     return;
   }
 
-  // Prefer svgOverlay via fetch; fallback to imageOverlay with SVG URL for file:// usage
+  // Prefer svgOverlay via fetch; fallback to imageOverlay with PNG for better mobile performance
   const trySvgOverlay = () => {
-    return fetch("sprites/map.svg")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.text();
-      })
-      .then((text) => {
-        const doc = new DOMParser().parseFromString(text, "image/svg+xml");
-        const svg = doc.querySelector("svg");
-        if (!svg) throw new Error("SVG root not found");
+    const width = 809.33;
+    const height = 1078.67;
+    const southWest = [height, 0];
+    const northEast = [0, width];
+    mapBounds = [southWest, northEast];
 
-        const viewBox = (svg.getAttribute("viewBox") || "0 0 1440 810")
-          .split(" ")
-          .map(Number);
-        const widthAttr = parseFloat(svg.getAttribute("width"));
-        const heightAttr = parseFloat(svg.getAttribute("height"));
-        const width = viewBox[2] || widthAttr || 1440;
-        const height = viewBox[3] || heightAttr || 810;
+    mapInstance = L.map("map", {
+      crs: L.CRS.Simple,
+      minZoom: -0.1,
+      maxZoom: 8,
+      maxBoundsViscosity: 1.0,
+    });
 
-        svg.removeAttribute("width");
-        svg.removeAttribute("height");
-        svg.setAttribute("width", "100%");
-        svg.setAttribute("height", "100%");
-        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-        const southWest = [height, 0];
-        const northEast = [0, width];
-        mapBounds = [southWest, northEast];
-
-        mapInstance = L.map("map", {
-          crs: L.CRS.Simple,
-          minZoom: -0.1,
-          maxZoom: 8,
-          maxBoundsViscosity: 1.0,
-        });
-
-        const svgElement = svg.cloneNode(true);
-        L.svgOverlay(svgElement, mapBounds).addTo(mapInstance);
-        mapInstance.fitBounds(mapBounds);
-        mapInstance.setMaxBounds(mapBounds);
-        hydratePositions().then(renderMarkers);
-      });
+    // Use PNG for faster rendering on mobile
+    L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
+    mapInstance.fitBounds(mapBounds);
+    mapInstance.setMaxBounds(mapBounds);
+    hydratePositions().then(renderMarkers);
   };
 
   const fallbackImageOverlaySvg = () => {
@@ -674,8 +651,8 @@ function initMap() {
       maxBoundsViscosity: 1.0,
     });
 
-    // Render the SVG as an image source; works under file://
-    L.imageOverlay("sprites/map.svg", mapBounds).addTo(mapInstance);
+    // Use PNG for better mobile performance
+    L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
     mapInstance.fitBounds(mapBounds);
     mapInstance.setMaxBounds(mapBounds);
     hydratePositions().then(renderMarkers);
