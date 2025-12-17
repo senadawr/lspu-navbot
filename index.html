@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LSPU Campus Navigator</title>
   <link rel="icon" type="image/png" href="sprites/lspu_logo.png">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Local Leaflet CSS for offline usage -->
+  <link rel="stylesheet" href="libs/leaflet.css" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,8 +24,8 @@
     <div class="landing__glow"></div>
     <div class="landing__card">
       <div class="landing__card-actions">
-        <button id="theme-toggle-landing" class="icon-btn square" aria-label="Toggle theme">🌞</button>
-        <button id="open-info-landing" class="icon-btn square" aria-label="Open information">ℹ️</button>
+        <button id="theme-toggle-landing" class="icon-btn square" aria-label="Toggle theme"><i data-feather="sun"></i></button>
+        <button id="open-info-landing" class="icon-btn square" aria-label="Open information"><i data-feather="info"></i></button>
       </div>
       <p class="eyebrow">Welcome, Ka-Piyu!</p>
       <h1>Navigate our Los Baños Campus in seconds.</h1>
@@ -34,7 +35,7 @@
       <div class="quick-stats">
         <div><span class="stat-num">180+</span><span class="stat-label">Locations</span></div>
         <div><span class="stat-num">1-click</span><span class="stat-label">Optimal route</span></div>
-        <div><span class="stat-num">Meters</span><span class="stat-label">Weighted edges</span></div>
+        <div><span class="stat-num">Timed Arrival</span><span class="stat-label">Accurate ETA</span></div>
       </div>
       <button id="get-started" class="cta">Get started</button>
     </div>
@@ -45,10 +46,10 @@
     <div class="fun-facts-content" id="facts-content">
       <h2>Did you know?</h2>
       <div class="fact-display">
-        <div class="fact-category" id="fact-category">📜 History</div>
+        <div class="fact-category" id="fact-category"><i data-feather="bookmark"></i> History</div>
         <div class="fact-text" id="fact-text">Loading fun fact...</div>
       </div>
-      <button id="shuffle-fact" class="shuffle-btn">🔀 Show Another Fact</button>
+      <button id="shuffle-fact" class="shuffle-btn"><i data-feather="shuffle"></i> Show Another Fact</button>
     </div>
   </div>
 
@@ -57,9 +58,9 @@
       <div class="dot"></div>
       <h1>Campus Navigation Tool</h1>
       <div class="header-actions">
-        <button id="theme-toggle-btn" class="icon-btn square" aria-label="Toggle theme">🌞</button>
-        <button id="open-info" class="icon-btn square" aria-label="Open information">ℹ️</button>
-        <button id="exit-to-landing" class="icon-btn square" aria-label="Back to get started">❌</button>
+        <button id="theme-toggle-btn" class="icon-btn square" aria-label="Toggle theme"><i data-feather="sun"></i></button>
+        <button id="open-info" class="icon-btn square" aria-label="Open information"><i data-feather="info"></i></button>
+        <button id="exit-to-landing" class="icon-btn square" aria-label="Back to get started"><i data-feather="x"></i></button>
       </div>
     </header>
     <div class="content">
@@ -101,11 +102,14 @@
           <h3 style="margin:0 0 10px;font-size:15px;">Campus map (Leaflet overlay)</h3>
           <div id="map"></div>
           <p class="map-note">Use the scroll wheel to pan/zoom the map.</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-            <button id="fix-nodes-btn" class="icon-btn" style="width:auto;">Fix node positions</button>
-            <button id="undo-fix-placement" class="icon-btn" style="width:auto;">Undo last</button>
-            <button id="download-fixed-positions" class="icon-btn" style="width:auto;">Download coords</button>
-          </div>
+          <button id="place-joey-lina" style="margin-top:10px;display:flex;align-items:center;gap:8px;">
+            <i data-feather="map-pin"></i>
+            Place "Joey Lina Hidden Pathway"
+          </button>
+          <button id="download-positions" style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+            <i data-feather="download"></i>
+            Download node positions
+          </button>
         </div>
       </section>
     </div>
@@ -115,7 +119,7 @@
     <div class="settings-panel">
       <div class="settings-header">
         <h3 id="info-title">Information</h3>
-        <button id="close-info" class="icon-btn square" aria-label="Close information">✕</button>
+        <button id="close-info" class="icon-btn square" aria-label="Close information"><i data-feather="x"></i></button>
       </div>
       <div class="info-columns">
         <div class="info-col">
@@ -138,9 +142,20 @@
   </div>
 
   <!-- Mobile Facts Toggle Button -->
-  <button id="facts-toggle-mobile" class="facts-toggle-mobile" aria-label="Toggle fun facts">💡</button>
+  <button id="facts-toggle-mobile" class="facts-toggle-mobile" aria-label="Toggle fun facts"><i data-feather="bulb"></i></button>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Local scripts for offline usage -->
+  <script src="libs/leaflet.js"></script>
+  <script src="libs/feather-icons.js"></script>
+  <script>
+    // Initialize feather icons when DOM is ready
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.feather && typeof window.feather.replace === 'function') {
+        window.feather.replace();
+      }
+    });
+  </script>
   <script src="app.js"></script>
+  <footer class="site-footer">(c) Laguna State Polytechnic University, 2025</footer>
 </body>
 </html>

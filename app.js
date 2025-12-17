@@ -218,13 +218,14 @@ const edges = [
   ["CHMT Room 10", "Joey Lina", 2],
   
   // Joey Lina & COF
+  ["CFND Corridor", "Joey Lina Hidden Pathway", 58],
+  ["Joey Lina Hidden Pathway", "Joey Lina Gate", 49],
   ["Joey Lina", "Joey Lina Stage", 3],
   ["Joey Lina Stage", "Joey Lina Gate", 7],
   ["Joey Lina Stage", "Female CHMT CR", 4],
   ["Joey Lina Stage", "Male CHMT CR", 4],
   ["Joey Lina Gate", "COF Room 1", 15],
   ["COF Room 1", "COF Room 2", 6.2],
-  ["COF Room 1", "Fishpond 5", 5],
   ["COF Room 2", "COF Room 3", 6.2],
   ["COF Room 3", "COF Room 4", 6.2],
   ["COF Room 4", "COF Room 5", 6.2],
@@ -258,8 +259,6 @@ const edges = [
   ["COF New Building 2F Hallway", "COF New Building Stairs 1", 10],
   ["COF Room 7", "COF Room 8", 6.2],
   ["COF New Building Pathway", "Old Waiting Area", 5],
-  ["COF New Building Pathway", "Fishpond", 15],
-  ["Fishpond", "COF New Building Stairs", 23],
   ["COF New Building Stairs", "COF Consultation Room", 4.5],
   ["COF Consultation Room", "CR", 4.5],
   ["CR", "COF Faculty Room", 4.5],
@@ -342,6 +341,8 @@ const openInfoLanding = document.getElementById("open-info-landing");
 const themeToggleLanding = document.getElementById("theme-toggle-landing");
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const exitToLanding = document.getElementById("exit-to-landing");
+const placeJoeyLinaBtn = document.getElementById("place-joey-lina");
+const downloadPositionsBtn = document.getElementById("download-positions");
 let mapInstance = null;
 let mapBounds = null;
 let nodePositions = new Map();
@@ -350,88 +351,8 @@ let nodeLayer = null;
 let pathLine = null;
 let selectedStart = null;
 let selectedEnd = null;
-
-// Temporary node placement for fixing specific nodes
-const nodesToFix = [
-  "Joey Lina Gate", "CCS Waiting Shed", "Waiting Shed", "Sports and Cultural Office Room",
-  "Sports Faculty Office", "COF Consultation Room", "CHMT Room Office 3", "CHMT Stock Room",
-  "CFND Garage", "Admin Building Entrance", "Admin Building Hallway 1", "Admin Building Alumni Office",
-  "Management Information Planning and Development Office", "Office of the Auditor", "Deputy Campus Director Office",
-  "Records and Management Office", "Office of the Supply and Property Management", "Admin Building Hallway 2",
-  "Admin Building Stairs 2", "Admin Building CR", "PPSD", "Admin Building Outside Stairs",
-  "Admin Building 2F Hallway", "Registrar's Office", "Guard House", "CFND Sensory Lab",
-  "CFND Pathway", "NSTP Office", "CFND Empty Room", "CFND Corridor",
-  "CFND Room 1", "CFND Faculty Room", "BAO Pathway", "BAO", "Meeting Room 2"
-];
-let fixPlacementActive = false;
-let fixPlacementIndex = 0;
-let fixPlacementHistory = [];
-
-function undoFixPlacement() {
-  if (fixPlacementHistory.length === 0) return;
-  fixPlacementIndex -= 1;
-  const name = fixPlacementHistory.pop();
-  nodePositions.delete(name);
-  renderMarkers();
-  updateFixPlacementPrompt();
-}
-function startFixPlacement() {
-  if (!mapInstance) return;
-  fixPlacementActive = true;
-  fixPlacementIndex = 0;
-  fixPlacementHistory = [];
-  updateFixPlacementPrompt();
-  mapInstance.off("click");
-  attachFixPlacementListener();
-}
-function updateFixPlacementPrompt() {
-  if (!fixPlacementActive) return;
-  const next = nodesToFix[fixPlacementIndex];
-  errorBox.textContent = next
-    ? `Click map to place: ${next} (${fixPlacementIndex + 1}/${nodesToFix.length})`
-    : "Placement complete!";
-}
-
-function attachFixPlacementListener() {
-  if (!mapInstance) return;
-  mapInstance.once("click", handleFixPlacementClick);
-}
-
-function handleFixPlacementClick(e) {
-  if (!fixPlacementActive) return;
-  const current = nodesToFix[fixPlacementIndex];
-  nodePositions.set(current, [e.latlng.lat, e.latlng.lng]);
-  fixPlacementHistory.push(current);
-  console.log(`Placed: ${current} at [${e.latlng.lat}, ${e.latlng.lng}]`);
-  renderMarkers();
-  
-  fixPlacementIndex += 1;
-  if (fixPlacementIndex >= nodesToFix.length) {
-    fixPlacementActive = false;
-    errorBox.textContent = `All ${nodesToFix.length} nodes placed! Download the updated coordinates.`;
-    return;
-  }
-  
-  updateFixPlacementPrompt();
-  attachFixPlacementListener();
-}
-
-function downloadFixedPositions() {
-  const obj = Object.fromEntries(nodePositions.entries());
-  const json = JSON.stringify(obj, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "node-positions.json";
-  link.click();
-  URL.revokeObjectURL(url);
-  errorBox.textContent = "Updated coordinates downloaded. Replace node-positions.json and refresh.";
-}
-
-// Expose globally for console access
-window.startFixPlacement = startFixPlacement;
-window.downloadFixedPositions = downloadFixedPositions;
+let placementActive = false;
+const placementTargetName = "Joey Lina Hidden Pathway";
 
 function populateSelects() {
   const fragStart = document.createDocumentFragment();
@@ -505,6 +426,45 @@ function drawPathOnMap(path) {
     lineJoin: "round",
   }).addTo(mapInstance);
   mapInstance.fitBounds(L.latLngBounds(coords), { padding: [20, 20] });
+}
+
+function startPlacementMode() {
+  if (!mapInstance) return;
+  placementActive = true;
+  const note = document.querySelector('.map-note');
+  if (note) note.textContent = 'Placement active: click on the map to set position for "Joey Lina Hidden Pathway".';
+  const onClick = (e) => {
+    if (!placementActive) return;
+    const { lat, lng } = e.latlng;
+    const pos = [lat, lng];
+    nodePositions.set(placementTargetName, pos);
+    renderMarkers();
+    placementActive = false;
+    mapInstance.off('click', onClick);
+    const noteEl = document.querySelector('.map-note');
+    if (noteEl) noteEl.textContent = 'Node placed. You may compute paths or place again.';
+  };
+  mapInstance.on('click', onClick);
+}
+
+function downloadPositions() {
+  try {
+    const obj = Object.fromEntries(nodePositions);
+    const json = JSON.stringify(obj, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'node-positions.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+  } catch (e) {
+    console.warn('Failed to download positions', e);
+  }
 }
 
 async function positionsFromDisk() {
@@ -616,10 +576,13 @@ function applyTheme(theme) {
   localStorage.setItem("theme", theme);
   const isDark = theme === "dark";
   if (themeToggleBtn) {
-    themeToggleBtn.textContent = isDark ? "🌙" : "🌞";
+    themeToggleBtn.innerHTML = isDark ? '<i data-feather="moon"></i>' : '<i data-feather="sun"></i>';
   }
   if (themeToggleLanding) {
-    themeToggleLanding.textContent = isDark ? "🌙" : "🌞";
+    themeToggleLanding.innerHTML = isDark ? '<i data-feather="moon"></i>' : '<i data-feather="sun"></i>';
+  }
+  if (window.feather && typeof window.feather.replace === 'function') {
+    window.feather.replace();
   }
 }
 
@@ -671,6 +634,18 @@ if (exitToLanding) {
     }, 100);
     const saved = localStorage.getItem("theme");
     applyTheme(saved === "dark" ? "dark" : "light");
+  });
+}
+
+if (placeJoeyLinaBtn) {
+  placeJoeyLinaBtn.addEventListener('click', () => {
+    startPlacementMode();
+  });
+}
+
+if (downloadPositionsBtn) {
+  downloadPositionsBtn.addEventListener('click', () => {
+    downloadPositions();
   });
 }
 
@@ -765,34 +740,6 @@ renderPath(null, null);
 initMap();
 initTheme();
 
-// Set up fix placement buttons
-const fixNodesBtn = document.getElementById("fix-nodes-btn");
-const undoFixBtn = document.getElementById("undo-fix-placement");
-const downloadFixedBtn = document.getElementById("download-fixed-positions");
-
-if (fixNodesBtn) {
-  fixNodesBtn.addEventListener("click", () => {
-    if (!mapInstance) return;
-    if (fixPlacementActive) {
-      fixPlacementActive = false;
-      fixNodesBtn.textContent = "Fix node positions";
-      errorBox.textContent = "";
-      mapInstance.off("click", handleFixPlacementClick);
-      return;
-    }
-    startFixPlacement();
-    fixNodesBtn.textContent = "Stop fixing";
-  });
-}
-
-if (undoFixBtn) {
-  undoFixBtn.addEventListener("click", undoFixPlacement);
-}
-
-if (downloadFixedBtn) {
-  downloadFixedBtn.addEventListener("click", downloadFixedPositions);
-}
-
 // Fun Facts Tab Toggle and Random Facts
 const factsToggle = document.getElementById("facts-toggle");
 const funFactsTab = document.getElementById("fun-facts-tab");
@@ -801,27 +748,27 @@ const factText = document.getElementById("fact-text");
 const factCategory = document.getElementById("fact-category");
 
 const funFacts = [
-  { category: "📜 History", text: "LSPU began in 1952 as the Manuel S. Enverga University Foundation." },
-  { category: "📜 History", text: "It became Laguna State Polytechnic College (LSPC) in 2001." },
-  { category: "📜 History", text: "It earned university status in 2009 and became LSPU." },
-  { category: "📜 History", text: "LSPU is named after Laguna, the 'Resort Capital of the Philippines.'" },
-  { category: "📜 History", text: "The Los Banos campus serves as a satellite; the main campus is in Santa Cruz." },
-  { category: "📜 History", text: "Students often call each other 'Ka-Piyu' (from 'Piyu' meaning chick)." },
-  { category: "📜 History", text: "LSPU now spans multiple campuses across Laguna province." },
-  { category: "📜 History", text: "It is known for providing affordable, quality education to Lagunenses." },
-  { category: "🗺️ Geography", text: "The Los Banos campus sits at the foot of Mount Makiling." },
-  { category: "🗺️ Geography", text: "Los Banos means 'The Baths' in Spanish, named for its hot springs." },
-  { category: "🗺️ Geography", text: "The town lies about 63 km southeast of Manila." },
-  { category: "🗺️ Geography", text: "The campus neighbors research hubs like IRRI and UPLB." },
-  { category: "🗺️ Geography", text: "Cool breezes from Mt. Makiling keep the campus milder than Manila." },
-  { category: "🗺️ Geography", text: "Los Banos belongs to the CALABARZON region." },
-  { category: "🗺️ Geography", text: "The area thrives as a scientific and agricultural community." },
-  { category: "🗺️ Geography", text: "Laguna de Bay, the country's largest lake, is close by." },
-  { category: "🎉 Campus Life", text: "LSPU offers programs in business, education, engineering, and more." },
-  { category: "🎉 Campus Life", text: "The Lacson Gymnasium hosts major sports and campus events." },
-  { category: "🎉 Campus Life", text: "Student councils are active across colleges." },
-  { category: "🎉 Campus Life", text: "Community engagement and extension programs are a core tradition." },
-  { category: "🎉 Campus Life", text: "The campus cafeteria is known for affordable meals." }
+  { category: "History", text: "LSPU began in 1952 as the Manuel S. Enverga University Foundation." },
+  { category: "History", text: "It became Laguna State Polytechnic College (LSPC) in 2001." },
+  { category: "History", text: "It earned university status in 2009 and became LSPU." },
+  { category: "History", text: "LSPU is named after Laguna, the 'Resort Capital of the Philippines.'" },
+  { category: "History", text: "The Los Banos campus serves as a satellite; the main campus is in Santa Cruz." },
+  { category: "History", text: "Students often call each other 'Ka-Piyu' (from 'Piyu' meaning chick)." },
+  { category: "History", text: "LSPU now spans multiple campuses across Laguna province." },
+  { category: "History", text: "It is known for providing affordable, quality education to Lagunenses." },
+  { category: "Geography", text: "The Los Banos campus sits at the foot of Mount Makiling." },
+  { category: "Geography", text: "Los Banos means 'The Baths' in Spanish, named for its hot springs." },
+  { category: "Geography", text: "The town lies about 63 km southeast of Manila." },
+  { category: "Geography", text: "The campus neighbors research hubs like IRRI and UPLB." },
+  { category: "Geography", text: "Cool breezes from Mt. Makiling keep the campus milder than Manila." },
+  { category: "Geography", text: "Los Banos belongs to the CALABARZON region." },
+  { category: "Geography", text: "The area thrives as a scientific and agricultural community." },
+  { category: "Geography", text: "Laguna de Bay, the country's largest lake, is close by." },
+  { category: "Campus Life", text: "LSPU offers programs in business, education, engineering, and more." },
+  { category: "Campus Life", text: "The Lacson Gymnasium hosts major sports and campus events." },
+  { category: "Campus Life", text: "Student councils are active across colleges." },
+  { category: "Campus Life", text: "Community engagement and extension programs are a core tradition." },
+  { category: "Campus Life", text: "The campus cafeteria is known for affordable meals." }
 ];
 
 let currentFactIndex = -1;
@@ -846,7 +793,16 @@ function showRandomFact() {
     
     if (factText && factCategory) {
       factText.textContent = fact.text;
-      factCategory.textContent = fact.category;
+      const categoryIcons = {
+        "History": "bookmark",
+        "Geography": "map",
+        "Campus Life": "smile"
+      };
+      const iconName = categoryIcons[fact.category] || "bookmark";
+      factCategory.innerHTML = `<i data-feather="${iconName}"></i> ${fact.category}`;
+      if (window.feather && typeof window.feather.replace === 'function') {
+        window.feather.replace();
+      }
     }
     
     // Fade back in
