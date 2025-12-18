@@ -637,31 +637,24 @@ function initMap() {
     hydratePositions().then(renderMarkers);
   };
 
-  const fallbackImageOverlaySvg = () => {
-    const width = 809.33;
-    const height = 1078.67;
-    const southWest = [height, 0];
-    const northEast = [0, width];
-    mapBounds = [southWest, northEast];
+  // Use PNG for better compatibility
+  const width = 809.33;
+  const height = 1078.67;
+  const southWest = [height, 0];
+  const northEast = [0, width];
+  mapBounds = [southWest, northEast];
 
-    mapInstance = L.map("map", {
-      crs: L.CRS.Simple,
-      minZoom: -0.1,
-      maxZoom: 8,
-      maxBoundsViscosity: 1.0,
-    });
-
-    // Use PNG for better mobile performance
-    L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
-    mapInstance.fitBounds(mapBounds);
-    mapInstance.setMaxBounds(mapBounds);
-    hydratePositions().then(renderMarkers);
-  };
-
-  trySvgOverlay().catch((err) => {
-    console.warn("svgOverlay fetch failed; using imageOverlay with SVG URL", err);
-    fallbackImageOverlaySvg();
+  mapInstance = L.map("map", {
+    crs: L.CRS.Simple,
+    minZoom: -0.1,
+    maxZoom: 8,
+    maxBoundsViscosity: 1.0,
   });
+
+  L.imageOverlay("sprites/map.png", mapBounds).addTo(mapInstance);
+  mapInstance.fitBounds(mapBounds);
+  mapInstance.setMaxBounds(mapBounds);
+  hydratePositions().then(renderMarkers);
 }
 
 populateSelects();
@@ -705,13 +698,13 @@ let currentFactIndex = -1;
 
 function showRandomFact() {
   const factDisplay = document.querySelector(".fact-display");
+  const factTextEl = document.getElementById("fact-text");
+  const factCategoryEl = document.getElementById("fact-category");
   
-  // Fade out
   if (factDisplay) {
     factDisplay.classList.add("fade-out");
   }
   
-  // Wait for fade out, then change content and fade in
   setTimeout(() => {
     let newIndex;
     do {
@@ -721,21 +714,20 @@ function showRandomFact() {
     currentFactIndex = newIndex;
     const fact = funFacts[currentFactIndex];
     
-    if (factText && factCategory) {
-      factText.textContent = fact.text;
+    if (factTextEl && factCategoryEl) {
+      factTextEl.textContent = fact.text;
       const categoryIcons = {
         "History": "bookmark",
         "Geography": "map",
         "Campus Life": "smile"
       };
       const iconName = categoryIcons[fact.category] || "bookmark";
-      factCategory.innerHTML = `<i data-feather="${iconName}"></i> ${fact.category}`;
+      factCategoryEl.innerHTML = `<i data-feather="${iconName}"></i> ${fact.category}`;
       if (window.feather && typeof window.feather.replace === 'function') {
         window.feather.replace();
       }
     }
     
-    // Fade back in
     if (factDisplay) {
       factDisplay.classList.remove("fade-out");
     }
@@ -762,18 +754,7 @@ if (factsMobileBtn && funFactsTab) {
       window.feather.replace();
     }
   });
-  
-  // Close facts when clicking outside
-  document.addEventListener("click", (e) => {
-    const isClickInsideFacts = funFactsTab.contains(e.target);
-    const isClickOnBtn = factsMobileBtn.contains(e.target);
-    if (!isClickInsideFacts && !isClickOnBtn && !funFactsTab.classList.contains("hidden")) {
-      funFactsTab.classList.add("hidden");
-      factsMobileBtn.classList.remove("active");
-    }
-  });
 }
 
 // Show initial random fact
 showRandomFact();
-

@@ -528,7 +528,6 @@ button:disabled {
 
 /* Mobile Facts Toggle Button */
 .facts-toggle-mobile {
-  display: none;
   position: fixed;
   bottom: 32px;
   right: 32px;
@@ -556,15 +555,6 @@ button:disabled {
   .panel:last-child { border-bottom: none; }
   .content { padding-bottom: 16px; }
   #map { height: 240px; }
-  
-  /* Hide fun facts on mobile, show toggle button instead */
-  .fun-facts-tab {
-    display: none;
-  }
-  
-  .facts-toggle-mobile {
-    display: block !important;
-  }
   
   .facts-toggle-mobile.active {
     background: rgba(37, 99, 235, 0.2) !important;
