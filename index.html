@@ -65,11 +65,17 @@
     </header>
     <div class="content">
       <section class="panel">
-        <label for="start">Starting location</label>
-        <select id="start"></select>
+        <div class="select-group">
+          <label for="start">Starting location</label>
+          <input id="start-search" class="select-search" type="search" placeholder="Search locations" aria-label="Search starting location">
+          <select id="start"></select>
+        </div>
 
-        <label for="end">Destination</label>
-        <select id="end"></select>
+        <div class="select-group">
+          <label for="end">Destination</label>
+          <input id="end-search" class="select-search" type="search" placeholder="Search destinations" aria-label="Search destination">
+          <select id="end"></select>
+        </div>
 
         <button id="compute">Compute optimal path</button>
         <div id="error" class="error" aria-live="polite"></div>

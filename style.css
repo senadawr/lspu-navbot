@@ -349,7 +349,13 @@ label {
   font-size: 13px;
   margin-bottom: 6px;
 }
-select, button {
+.select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+select, button, .select-search {
   width: 100%;
   padding: 12px 14px;
   border-radius: var(--radius);
@@ -360,11 +366,15 @@ select, button {
   outline: none;
   transition: 0.2s ease;
 }
-select:focus, button:focus {
+select:focus, button:focus, .select-search:focus {
   border-color: rgba(37, 99, 235, 0.7);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
-select { margin-bottom: 14px; }
+.select-search {
+  border-style: dashed;
+  border-color: var(--border);
+  background: var(--surface);
+}
 button {
   background: var(--accent);
   border: none;

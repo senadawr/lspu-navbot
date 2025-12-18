@@ -329,6 +329,8 @@ function shortestPath(start, end) {
 
 const startSelect = document.getElementById("start");
 const endSelect = document.getElementById("end");
+const startSearch = document.getElementById("start-search");
+const endSearch = document.getElementById("end-search");
 const computeBtn = document.getElementById("compute");
 const errorBox = document.getElementById("error");
 const pathBox = document.getElementById("path");
@@ -370,6 +372,30 @@ function populateSelects() {
   endSelect.appendChild(fragEnd);
   startSelect.value = "Gate 1";
   endSelect.value = "CBAA Student Council";
+}
+
+function filterSelectOptions(selectEl, query) {
+  const normalized = (query || "").trim().toLowerCase();
+  let firstVisible = null;
+
+  Array.from(selectEl.options).forEach((opt) => {
+    const matches = !normalized || opt.textContent.toLowerCase().includes(normalized);
+    opt.hidden = !matches;
+    if (matches && !firstVisible) firstVisible = opt;
+  });
+
+  if (normalized && firstVisible && selectEl.selectedOptions[0]?.hidden) {
+    selectEl.value = firstVisible.value;
+  }
+}
+
+function initSelectSearch() {
+  if (startSearch) {
+    startSearch.addEventListener("input", (e) => filterSelectOptions(startSelect, e.target.value));
+  }
+  if (endSearch) {
+    endSearch.addEventListener("input", (e) => filterSelectOptions(endSelect, e.target.value));
+  }
 }
 
 function updateStats() {
@@ -658,6 +684,7 @@ function initMap() {
 }
 
 populateSelects();
+initSelectSearch();
 updateStats();
 renderPath(null, null);
 initMap();
